@@ -1,0 +1,112 @@
+<div class="procesos-container">
+  <!-- Header -->
+  <div class="procesos-header">
+    <div class="header-title">
+      <h1>Gestión de Procesos</h1>
+      <p>Monitorea y administra todos tus procesos del sistema</p>
+    </div>
+    <button class="btn-nuevo-proceso">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="5" x2="12" y2="19"/>
+        <line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo Proceso
+    </button>
+  </div>
+
+  <!-- Search and Filter -->
+  <div class="procesos-toolbar">
+    <div class="search-box">
+      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/>
+        <path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input 
+        type="text" 
+        placeholder="Buscar procesos..."
+        [(ngModel)]="searchTerm"
+      />
+    </div>
+
+    <div class="filter-buttons">
+      <button 
+        class="filter-btn"
+        [class.active]="filtroEstado === 'todos'"
+        (click)="filtroEstado = 'todos'"
+      >
+        Todos
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filtroEstado === 'en-progreso'"
+        (click)="filtroEstado = 'en-progreso'"
+      >
+        En Progreso
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filtroEstado === 'completado'"
+        (click)="filtroEstado = 'completado'"
+      >
+        Completados
+      </button>
+      <button 
+        class="filter-btn"
+        [class.active]="filtroEstado === 'suspendido'"
+        (click)="filtroEstado = 'suspendido'"
+      >
+        Suspendidos
+      </button>
+    </div>
+  </div>
+
+  <!-- Procesos List -->
+  <div class="procesos-content">
+    <div *ngIf="procesosFiltrados.length > 0; else noProcesos" class="procesos-grid">
+      <div *ngFor="let proceso of procesosFiltrados" class="proceso-card" (click)="verProceso(proceso.id)">
+        <div class="proceso-header">
+          <div class="proceso-title">
+            <h3>{{ proceso.nombre }}</h3>
+            <span class="status-badge" [class]="getStatusColor(proceso.estado)">
+              {{ getStatusText(proceso.estado) }}
+            </span>
+          </div>
+          <div class="proceso-date">
+            {{ proceso.fechaInicio }}
+          </div>
+        </div>
+
+        <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
+
+        <div class="progress-section">
+          <div class="progress-info">
+            <span>Progreso</span>
+            <span class="progress-value">{{ proceso.progreso }}%</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" [style.width.%]="proceso.progreso"></div>
+          </div>
+        </div>
+
+        <div class="proceso-footer">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
+            <line x1="9" y1="13" x2="15" y2="13"/>
+            <line x1="9" y1="17" x2="15" y2="17"/>
+          </svg>
+          Ver detalles
+        </div>
+      </div>
+    </div>
+
+    <ng-template #noProcesos>
+      <div class="no-procesos">
+        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <h3>No hay procesos</h3>
+        <p>No se encontraron procesos que coincidan con tu búsqueda</p>
+      </div>
+    </ng-template>
+  </div>
+</div>

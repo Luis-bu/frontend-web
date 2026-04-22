@@ -43,7 +43,7 @@ export class Login {
       this.isLoading.set(false);
       // Simulamos login exitoso
       console.log('Login exitoso:', { email: this.email(), password: this.password() });
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/procesos']);
     }, 1500);
   }
 
