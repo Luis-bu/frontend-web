@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f8f9fa;
+  background: #E2C7E6;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   padding: 20px;
   position: relative;
@@ -19,15 +19,15 @@
   opacity: 0.03;
   pointer-events: none;
   background-image: 
-    radial-gradient(circle at 20% 50%, rgba(3, 105, 161, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 80%, rgba(3, 105, 161, 0.08) 0%, transparent 50%);
+    radial-gradient(circle at 20% 50%, rgba(121, 75, 139, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(121, 75, 139, 0.1) 0%, transparent 50%);
 }
 
 .login-card {
   background: #ffffff;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.06);
+  border: 2px solid #794B8B;
+  box-shadow: 0 1px 3px rgba(46, 26, 71, 0.1), 0 4px 12px rgba(121, 75, 139, 0.15);
   width: 100%;
   max-width: 420px;
   padding: 40px;
@@ -56,7 +56,7 @@
   display: flex;
   justify-content: center;
   margin-bottom: 20px;
-  color: #0369a1;
+  color: #794B8B;
   animation: bounce 2s infinite;
 }
 
@@ -72,7 +72,7 @@
 .login-header h1 {
   font-size: 28px;
   font-weight: 700;
-  color: #1f2937;
+  color: #2E1A47;
   margin: 0 0 8px 0;
   letter-spacing: -0.5px;
 }
@@ -98,7 +98,7 @@
 .form-group label {
   font-size: 14px;
   font-weight: 600;
-  color: #1f2937;
+  color: #4A2A6A;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -112,17 +112,17 @@
 .input-wrapper svg {
   position: absolute;
   left: 14px;
-  color: #0369a1;
+  color: #794B8B;
   pointer-events: none;
 }
 
 .form-group input {
   width: 100%;
   padding: 12px 12px 12px 44px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #E2C7E6;
   border-radius: 6px;
   font-size: 14px;
-  color: #1f2937;
+  color: #2E1A47;
   transition: all 0.3s ease;
   box-sizing: border-box;
   background-color: #ffffff;
@@ -130,9 +130,9 @@
 
 .form-group input:focus {
   outline: none;
-  border-color: #0369a1;
+  border-color: #794B8B;
   background-color: #ffffff;
-  box-shadow: 0 0 0 3px rgba(3, 105, 161, 0.08);
+  box-shadow: 0 0 0 3px rgba(121, 75, 139, 0.1);
 }
 
 .form-group input::placeholder {
@@ -154,7 +154,7 @@
 }
 
 .toggle-password:hover {
-  color: #0369a1;
+  color: #794B8B;
 }
 
 .error-message {
@@ -193,7 +193,7 @@
   font-size: 16px;
   font-weight: 600;
   color: #ffffff;
-  background: #0369a1;
+  background: #794B8B;
   cursor: pointer;
   transition: all 0.3s ease;
   text-transform: uppercase;
@@ -205,8 +205,8 @@
 
 .login-button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.2);
-  background: #0551a6;
+  box-shadow: 0 4px 12px rgba(121, 75, 139, 0.3);
+  background: #4A2A6A;
 }
 
 .login-button:active:not(:disabled) {
@@ -228,8 +228,8 @@
   display: inline-block;
   width: 16px;
   height: 16px;
-  border: 2px solid rgba(3, 105, 161, 0.2);
-  border-top-color: #0369a1;
+  border: 2px solid rgba(121, 75, 139, 0.2);
+  border-top-color: #794B8B;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -244,7 +244,7 @@
   text-align: center;
   margin-top: 30px;
   padding-top: 20px;
-  border-top: 1px solid #e5e7eb;
+  border-top: 1px solid #E2C7E6;
 }
 
 .login-footer p {
@@ -254,14 +254,14 @@
 }
 
 .login-footer a {
-  color: #0369a1;
+  color: #794B8B;
   text-decoration: none;
   font-weight: 600;
   transition: color 0.3s ease;
 }
 
 .login-footer a:hover {
-  color: #0551a6;
+  color: #4A2A6A;
   text-decoration: underline;
 }
 
