@@ -1,0 +1,27 @@
+name: Deploy Angular App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar código
+        uses: actions/checkout@v4
+
+      - name: Instalar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instalar dependencias
+        run: npm install
+        working-directory: ./mi-app
+
+      - name: Compilar Angular
+        run: npm run build
+        working-directory: ./mi-app
