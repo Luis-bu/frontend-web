@@ -95,7 +95,8 @@
   flex-wrap: wrap;
 }
 
-.filter-btn {
+.filter-btn,
+.view-btn {
   padding: 8px 16px;
   border: 1px solid #e5e7eb;
   background: white;
@@ -107,20 +108,122 @@
   transition: all 0.3s ease;
 }
 
-.filter-btn:hover {
+.filter-btn:hover,
+.view-btn:hover {
   border-color: #0369a1;
   color: #0369a1;
 }
 
-.filter-btn.active {
+.filter-btn.active,
+.view-btn.active {
   background: #0369a1;
   color: white;
   border-color: #0369a1;
 }
 
+.view-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .procesos-content {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+.editor-panel {
+  max-width: 1200px;
+  margin: 0 auto 24px;
+}
+
+.editor-card {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.06);
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.editor-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #111827;
+}
+
+.btn-cancel,
+.btn-guardar,
+.btn-edit,
+.btn-connect {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-cancel {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.btn-cancel:hover {
+  background: #e5e7eb;
+}
+
+.btn-guardar {
+  background: #0369a1;
+  color: white;
+}
+
+.btn-guardar:hover {
+  background: #0551a6;
+}
+
+.editor-row {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.editor-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editor-row label {
+  font-size: 14px;
+  color: #374151;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.editor-row input,
+.editor-row textarea,
+.editor-row select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d4d4d8;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+}
+
+.editor-row textarea {
+  resize: vertical;
+}
+
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .procesos-grid {
@@ -132,7 +235,7 @@
 .proceso-card {
   background: white;
   border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  border-radius: 16px;
   padding: 24px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -141,7 +244,7 @@
 
 .proceso-card:hover {
   border-color: #0369a1;
-  box-shadow: 0 4px 12px rgba(3, 105, 161, 0.15);
+  box-shadow: 0 6px 20px rgba(3, 105, 161, 0.12);
   transform: translateY(-2px);
 }
 
@@ -161,46 +264,22 @@
 }
 
 .proceso-title h3 {
-  font-size: 16px;
-  font-weight: 600;
-  color: #1f2937;
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
   margin: 0;
-}
-
-.status-badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.status-badge.completado {
-  background: #d1fae5;
-  color: #065f46;
-}
-
-.status-badge.en-progreso {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.status-badge.suspendido {
-  background: #fee2e2;
-  color: #991b1b;
 }
 
 .proceso-date {
   font-size: 12px;
-  color: #9ca3af;
+  color: #6b7280;
 }
 
 .proceso-descripcion {
   font-size: 14px;
-  color: #6b7280;
+  color: #4b5563;
   margin: 0 0 16px 0;
-  line-height: 1.5;
+  line-height: 1.7;
 }
 
 .progress-section {
@@ -221,38 +300,46 @@
 
 .progress-value {
   color: #0369a1;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .progress-bar {
   width: 100%;
-  height: 6px;
+  height: 8px;
   background: #e5e7eb;
-  border-radius: 3px;
+  border-radius: 999px;
   overflow: hidden;
 }
 
 .progress-fill {
   height: 100%;
   background: linear-gradient(90deg, #0369a1, #0284c7);
-  border-radius: 3px;
+  border-radius: 999px;
   transition: width 0.3s ease;
 }
 
 .proceso-footer {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 8px;
-  color: #0369a1;
-  font-size: 13px;
-  font-weight: 600;
-  margin-top: 16px;
-  padding-top: 16px;
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 18px;
   border-top: 1px solid #e5e7eb;
 }
 
-.proceso-footer svg {
-  color: #0369a1;
+.btn-edit {
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.btn-edit:hover {
+  background: #e5e7eb;
+}
+
+.proceso-footer-text {
+  color: #6b7280;
+  font-size: 13px;
 }
 
 .no-procesos {
@@ -260,8 +347,135 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 20px;
+  padding: 60px 30px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+}
+
+.no-procesos svg {
+  margin-bottom: 18px;
+  color: #9ca3af;
+}
+
+.no-procesos h3 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  color: #111827;
+}
+
+.no-procesos p {
+  margin: 0;
+  color: #6b7280;
   text-align: center;
+}
+
+.board-container {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.06);
+}
+
+.board-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  color: #374151;
+  font-size: 14px;
+  margin-bottom: 18px;
+}
+
+.connection-hint {
+  display: block;
+  margin-bottom: 16px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+
+.board-area {
+  position: relative;
+  min-height: 620px;
+  width: 100%;
+  background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+  border: 2px dashed #cbd5e1;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.board-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.board-svg line {
+  stroke: #0f172a;
+  stroke-width: 2;
+  opacity: 0.35;
+}
+
+.board-card {
+  position: absolute;
+  width: 280px;
+  min-height: 140px;
+  border-radius: 18px;
+  background: white;
+  border: 1px solid #e5e7eb;
+  padding: 18px;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+  cursor: grab;
+  user-select: none;
+}
+
+.board-card:active {
+  cursor: grabbing;
+}
+
+.board-card-title {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.board-card-title strong {
+  font-size: 16px;
+  color: #111827;
+}
+
+.board-card p {
+  margin: 0 0 14px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: #475569;
+}
+
+.board-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-connect {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.btn-connect.active {
+  background: #0369a1;
+  color: white;
+}
+
+.btn-connect:hover {
+  background: #bae6fd;
 }
 
 .no-procesos svg {

@@ -3,9 +3,9 @@
   <div class="procesos-header">
     <div class="header-title">
       <h1>Gestión de Procesos</h1>
-      <p>Monitorea y administra todos tus procesos del sistema</p>
+      <p>Monitorea, edita y ordena tus procesos con un tablero drag & drop.</p>
     </div>
-    <button class="btn-nuevo-proceso">
+    <button class="btn-nuevo-proceso" (click)="nuevoProceso()">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <line x1="12" y1="5" x2="12" y2="19"/>
         <line x1="5" y1="12" x2="19" y2="12"/>
@@ -58,46 +58,142 @@
         Suspendidos
       </button>
     </div>
+
+    <div class="view-buttons">
+      <button 
+        class="view-btn"
+        [class.active]="modo === 'lista'"
+        (click)="cambiarModo('lista')"
+      >
+        Vista lista
+      </button>
+      <button 
+        class="view-btn"
+        [class.active]="modo === 'tablero'"
+        (click)="cambiarModo('tablero')"
+      >
+        Ver tablero
+      </button>
+    </div>
   </div>
 
-  <!-- Procesos List -->
-  <div class="procesos-content">
-    <div *ngIf="procesosFiltrados.length > 0; else noProcesos" class="procesos-grid">
-      <div *ngFor="let proceso of procesosFiltrados" class="proceso-card" (click)="verProceso(proceso.id)">
-        <div class="proceso-header">
-          <div class="proceso-title">
-            <h3>{{ proceso.nombre }}</h3>
-            <span class="status-badge" [class]="getStatusColor(proceso.estado)">
-              {{ getStatusText(proceso.estado) }}
-            </span>
-          </div>
-          <div class="proceso-date">
-            {{ proceso.fechaInicio }}
-          </div>
+  <div *ngIf="editarProcesoId() !== null && editProceso" class="editor-panel">
+    <div class="editor-card">
+      <div class="editor-header">
+        <h2>Editar Proceso</h2>
+        <button class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+      </div>
+      <div class="editor-row">
+        <label>Nombre</label>
+        <input [(ngModel)]="editProceso.nombre" />
+      </div>
+      <div class="editor-row">
+        <label>Descripción</label>
+        <textarea rows="3" [(ngModel)]="editProceso.descripcion"></textarea>
+      </div>
+      <div class="editor-row">
+        <label>Estado</label>
+        <select [(ngModel)]="editProceso.estado">
+          <option value="en-progreso">En Progreso</option>
+          <option value="completado">Completado</option>
+          <option value="suspendido">Suspendido</option>
+        </select>
+      </div>
+      <div class="editor-row editor-grid">
+        <div>
+          <label>Progreso (%)</label>
+          <input type="number" min="0" max="100" [(ngModel)]="editProceso.progreso" />
         </div>
-
-        <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
-
-        <div class="progress-section">
-          <div class="progress-info">
-            <span>Progreso</span>
-            <span class="progress-value">{{ proceso.progreso }}%</span>
-          </div>
-          <div class="progress-bar">
-            <div class="progress-fill" [style.width.%]="proceso.progreso"></div>
-          </div>
-        </div>
-
-        <div class="proceso-footer">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/>
-            <line x1="9" y1="13" x2="15" y2="13"/>
-            <line x1="9" y1="17" x2="15" y2="17"/>
-          </svg>
-          Ver detalles
+        <div>
+          <label>Fecha inicio</label>
+          <input type="date" [(ngModel)]="editProceso.fechaInicio" />
         </div>
       </div>
+      <div class="editor-actions">
+        <button class="btn-guardar" (click)="guardarProceso()">Guardar cambios</button>
+      </div>
     </div>
+  </div>
+
+  <div class="procesos-content">
+    <ng-container *ngIf="modo === 'lista'; else tableroView">
+      <div *ngIf="procesosFiltrados.length > 0; else noProcesos" class="procesos-grid">
+        <div *ngFor="let proceso of procesosFiltrados" class="proceso-card" (click)="verProceso(proceso.id)">
+          <div class="proceso-header">
+            <div class="proceso-title">
+              <h3>{{ proceso.nombre }}</h3>
+              <span class="status-badge" [class]="getStatusColor(proceso.estado)">
+                {{ getStatusText(proceso.estado) }}
+              </span>
+            </div>
+            <div class="proceso-date">
+              {{ proceso.fechaInicio }}
+            </div>
+          </div>
+
+          <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
+
+          <div class="progress-section">
+            <div class="progress-info">
+              <span>Progreso</span>
+              <span class="progress-value">{{ proceso.progreso }}%</span>
+            </div>
+            <div class="progress-bar">
+              <div class="progress-fill" [style.width.%]="proceso.progreso"></div>
+            </div>
+          </div>
+
+          <div class="proceso-footer">
+            <button class="btn-edit" (click)="editarProcesoItem(proceso, $event)">Editar</button>
+            <span class="proceso-footer-text">Haz clic para abrir detalles</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #tableroView>
+      <div class="board-container">
+        <div class="board-toolbar">
+          <span>Arrastra los procesos dentro del tablero para reorganizarlos.</span>
+          <span>Presiona "Conectar" en un proceso y luego haz clic en otro para unirlos.</span>
+        </div>
+        <div *ngIf="mensajeConectar" class="connection-hint">{{ mensajeConectar }}</div>
+        <div class="board-area" #tablero (dragover)="onTableroDragOver($event)" (drop)="onTableroDrop($event)">
+          <svg class="board-svg" preserveAspectRatio="none">
+            <line
+              *ngFor="let conexion of conexiones()"
+              [attr.x1]="(posiciones()[conexion.from]?.x || 0) + 140"
+              [attr.y1]="(posiciones()[conexion.from]?.y || 0) + 65"
+              [attr.x2]="(posiciones()[conexion.to]?.x || 0) + 140"
+              [attr.y2]="(posiciones()[conexion.to]?.y || 0) + 65"
+            />
+          </svg>
+
+          <div
+            *ngFor="let proceso of procesosFiltrados"
+            class="board-card"
+            draggable="true"
+            (dragstart)="onCardDragStart($event, proceso)"
+            [style.left]="getBoardStyles(proceso).left"
+            [style.top]="getBoardStyles(proceso).top"
+          >
+            <div class="board-card-title">
+              <strong>{{ proceso.nombre }}</strong>
+              <span class="status-badge" [class]="getStatusColor(proceso.estado)">
+                {{ getStatusText(proceso.estado) }}
+              </span>
+            </div>
+            <p>{{ proceso.descripcion }}</p>
+            <div class="board-card-footer">
+              <span>{{ proceso.progreso }}%</span>
+              <button class="btn-connect" [class.active]="conectarDesdeId === proceso.id" (click)="iniciarConexion(proceso, $event)">
+                {{ conectarDesdeId === proceso.id ? 'Cancelar' : 'Conectar' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-template>
 
     <ng-template #noProcesos>
       <div class="no-procesos">
