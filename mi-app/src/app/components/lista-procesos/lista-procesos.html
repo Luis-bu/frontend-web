@@ -3,7 +3,7 @@
   <div class="procesos-header">
     <div class="header-title">
       <h1>Gestión de Procesos</h1>
-      <p>Monitorea, edita y ordena tus procesos con un tablero drag & drop.</p>
+      <p>Monitorea, edita y ordena tus procesos con un tablero drag &amp; drop.</p>
     </div>
     <button class="btn-nuevo-proceso" (click)="nuevoProceso()">
       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -14,6 +14,12 @@
     </button>
   </div>
 
+  <!-- Error -->
+  <div *ngIf="error()" class="error-banner">
+    {{ error() }}
+    <button (click)="error.set(null)">✕</button>
+  </div>
+
   <!-- Search and Filter -->
   <div class="procesos-toolbar">
     <div class="search-box">
@@ -21,75 +27,44 @@
         <circle cx="11" cy="11" r="8"/>
         <path d="m21 21-4.35-4.35"/>
       </svg>
-      <input 
-        type="text" 
-        placeholder="Buscar procesos..."
+      <input
+        type="text"
+        placeholder="Buscar por nombre, descripción, categoría o estado..."
         [(ngModel)]="searchTerm"
       />
     </div>
 
     <div class="filter-buttons">
-      <button 
-        class="filter-btn"
-        [class.active]="filtroEstado === 'todos'"
-        (click)="filtroEstado = 'todos'"
-      >
-        Todos
-      </button>
-      <button 
-        class="filter-btn"
-        [class.active]="filtroEstado === 'en-progreso'"
-        (click)="filtroEstado = 'en-progreso'"
-      >
-        En Progreso
-      </button>
-      <button 
-        class="filter-btn"
-        [class.active]="filtroEstado === 'completado'"
-        (click)="filtroEstado = 'completado'"
-      >
-        Completados
-      </button>
-      <button 
-        class="filter-btn"
-        [class.active]="filtroEstado === 'suspendido'"
-        (click)="filtroEstado = 'suspendido'"
-      >
-        Suspendidos
-      </button>
+      <button class="filter-btn" [class.active]="filtroEstado === 'todos'" (click)="filtroEstado = 'todos'">Todos</button>
+      <button class="filter-btn" [class.active]="filtroEstado === 'en-progreso'" (click)="filtroEstado = 'en-progreso'">En Progreso</button>
+      <button class="filter-btn" [class.active]="filtroEstado === 'completado'" (click)="filtroEstado = 'completado'">Completados</button>
+      <button class="filter-btn" [class.active]="filtroEstado === 'suspendido'" (click)="filtroEstado = 'suspendido'">Suspendidos</button>
     </div>
 
     <div class="view-buttons">
-      <button 
-        class="view-btn"
-        [class.active]="modo === 'lista'"
-        (click)="cambiarModo('lista')"
-      >
-        Vista lista
-      </button>
-      <button 
-        class="view-btn"
-        [class.active]="modo === 'tablero'"
-        (click)="cambiarModo('tablero')"
-      >
-        Ver tablero
-      </button>
+      <button class="view-btn" [class.active]="modo === 'lista'" (click)="cambiarModo('lista')">Vista lista</button>
+      <button class="view-btn" [class.active]="modo === 'tablero'" (click)="cambiarModo('tablero')">Ver tablero</button>
     </div>
   </div>
 
-  <div *ngIf="editarProcesoId() !== null && editProceso" class="editor-panel">
+  <!-- Editor Panel -->
+  <div *ngIf="mostrarEditor() && editProceso" class="editor-panel">
     <div class="editor-card">
       <div class="editor-header">
-        <h2>Editar Proceso</h2>
-        <button class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+        <h2>{{ editProceso.id !== undefined ? 'Editar Proceso' : 'Nuevo Proceso' }}</h2>
+        <button class="btn-cancel" (click)="cerrarEditor()">Cancelar</button>
       </div>
       <div class="editor-row">
         <label>Nombre</label>
-        <input [(ngModel)]="editProceso.nombre" />
+        <input [(ngModel)]="editProceso.nombre" placeholder="Nombre del proceso" />
       </div>
       <div class="editor-row">
         <label>Descripción</label>
-        <textarea rows="3" [(ngModel)]="editProceso.descripcion"></textarea>
+        <textarea rows="3" [(ngModel)]="editProceso.descripcion" placeholder="Describe este proceso"></textarea>
+      </div>
+      <div class="editor-row">
+        <label>Categoría</label>
+        <input [(ngModel)]="editProceso.categoria" placeholder="Categoría del proceso" />
       </div>
       <div class="editor-row">
         <label>Estado</label>
@@ -99,23 +74,21 @@
           <option value="suspendido">Suspendido</option>
         </select>
       </div>
-      <div class="editor-row editor-grid">
-        <div>
-          <label>Progreso (%)</label>
-          <input type="number" min="0" max="100" [(ngModel)]="editProceso.progreso" />
-        </div>
-        <div>
-          <label>Fecha inicio</label>
-          <input type="date" [(ngModel)]="editProceso.fechaInicio" />
-        </div>
-      </div>
       <div class="editor-actions">
-        <button class="btn-guardar" (click)="guardarProceso()">Guardar cambios</button>
+        <button class="btn-guardar" (click)="guardarProceso()" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
       </div>
     </div>
   </div>
 
-  <div class="procesos-content">
+  <!-- Loading -->
+  <div *ngIf="cargando()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Cargando procesos...</p>
+  </div>
+
+  <div class="procesos-content" *ngIf="!cargando()">
     <ng-container *ngIf="modo === 'lista'; else tableroView">
       <div *ngIf="procesosFiltrados.length > 0; else noProcesos" class="procesos-grid">
         <div *ngFor="let proceso of procesosFiltrados" class="proceso-card" (click)="verProceso(proceso.id)">
@@ -126,26 +99,21 @@
                 {{ getStatusText(proceso.estado) }}
               </span>
             </div>
-            <div class="proceso-date">
-              {{ proceso.fechaInicio }}
-            </div>
+            <span class="categoria-tag">{{ proceso.categoria }}</span>
           </div>
 
           <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
 
-          <div class="progress-section">
-            <div class="progress-info">
-              <span>Progreso</span>
-              <span class="progress-value">{{ proceso.progreso }}%</span>
-            </div>
-            <div class="progress-bar">
-              <div class="progress-fill" [style.width.%]="proceso.progreso"></div>
-            </div>
-          </div>
-
           <div class="proceso-footer">
             <button class="btn-edit" (click)="editarProcesoItem(proceso, $event)">Editar</button>
-            <span class="proceso-footer-text">Haz clic para abrir detalles</span>
+            <button
+              class="btn-delete"
+              (click)="eliminarProceso(proceso, $event)"
+              [disabled]="eliminandoId() === proceso.id"
+            >
+              {{ eliminandoId() === proceso.id ? '...' : 'Eliminar' }}
+            </button>
+            <span class="proceso-footer-text">Clic para ver detalles</span>
           </div>
         </div>
       </div>
@@ -163,9 +131,9 @@
             <line
               *ngFor="let conexion of conexiones()"
               [attr.x1]="(posiciones()[conexion.from]?.x || 0) + 140"
-              [attr.y1]="(posiciones()[conexion.from]?.y || 0) + 65"
+              [attr.y1]="(posiciones()[conexion.from]?.y || 0) + 50"
               [attr.x2]="(posiciones()[conexion.to]?.x || 0) + 140"
-              [attr.y2]="(posiciones()[conexion.to]?.y || 0) + 65"
+              [attr.y2]="(posiciones()[conexion.to]?.y || 0) + 50"
             />
           </svg>
 
@@ -185,7 +153,7 @@
             </div>
             <p>{{ proceso.descripcion }}</p>
             <div class="board-card-footer">
-              <span>{{ proceso.progreso }}%</span>
+              <span class="categoria-tag">{{ proceso.categoria }}</span>
               <button class="btn-connect" [class.active]="conectarDesdeId === proceso.id" (click)="iniciarConexion(proceso, $event)">
                 {{ conectarDesdeId === proceso.id ? 'Cancelar' : 'Conectar' }}
               </button>

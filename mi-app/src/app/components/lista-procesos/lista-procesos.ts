@@ -1,16 +1,19 @@
-import { Component, ElementRef, signal, ViewChild } from '@angular/core';
+import { Component, ElementRef, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ProcesoService } from '../../services/proceso.service';
+import { Proceso } from '../../models/proceso.model';
 
-interface Proceso {
-  id: number;
+const EMPRESA_ID = 1;
+
+interface ProcesoForm {
+  id?: number;
   nombre: string;
   descripcion: string;
-  estado: 'en-progreso' | 'completado' | 'suspendido';
-  progreso: number;
-  fechaInicio: string;
-  fechaFin?: string;
+  categoria: string;
+  estado: string;
+  empresaId: number;
 }
 
 @Component({
@@ -20,81 +23,69 @@ interface Proceso {
   templateUrl: './lista-procesos.html',
   styleUrl: './lista-procesos.css'
 })
-export class ListaProcesos {
+export class ListaProcesos implements OnInit {
   @ViewChild('tablero', { static: false }) tablero?: ElementRef<HTMLDivElement>;
 
-  procesos = signal<Proceso[]>([
-    {
-      id: 1,
-      nombre: 'Importación de Datos',
-      descripcion: 'Importación de estudiantes desde CSV',
-      estado: 'completado',
-      progreso: 100,
-      fechaInicio: '2026-04-15',
-      fechaFin: '2026-04-16'
-    },
-    {
-      id: 2,
-      nombre: 'Validación de Registros',
-      descripcion: 'Validación de integridad de datos',
-      estado: 'en-progreso',
-      progreso: 65,
-      fechaInicio: '2026-04-20'
-    },
-    {
-      id: 3,
-      nombre: 'Generación de Reportes',
-      descripcion: 'Generar reportes academicos mensuales',
-      estado: 'en-progreso',
-      progreso: 40,
-      fechaInicio: '2026-04-21'
-    },
-    {
-      id: 4,
-      nombre: 'Sincronización de BD',
-      descripcion: 'Sincronización con base de datos externa',
-      estado: 'suspendido',
-      progreso: 25,
-      fechaInicio: '2026-04-19'
-    },
-    {
-      id: 5,
-      nombre: 'Backup de Sistema',
-      descripcion: 'Copia de seguridad completa del sistema',
-      estado: 'completado',
-      progreso: 100,
-      fechaInicio: '2026-04-18',
-      fechaFin: '2026-04-18'
-    }
-  ]);
+  procesos = signal<Proceso[]>([]);
+  cargando = signal(false);
+  error = signal<string | null>(null);
+  guardando = signal(false);
+  eliminandoId = signal<number | null>(null);
 
-  searchTerm: string = '';
-  filtroEstado: 'todos' | 'en-progreso' | 'completado' | 'suspendido' = 'todos';
+  searchTerm = '';
+  filtroEstado = 'todos';
   modo: 'lista' | 'tablero' = 'lista';
-  editarProcesoId = signal<number | null>(null);
-  editProceso: Proceso | null = null;
+
+  mostrarEditor = signal(false);
+  editProceso: ProcesoForm | null = null;
+
   posiciones = signal<Record<number, { x: number; y: number }>>({});
   conexiones = signal<{ from: number; to: number }[]>([]);
   conectarDesdeId: number | null = null;
-  mensajeConectar: string = '';
+  mensajeConectar = '';
 
-  constructor(private router: Router) {}
+  constructor(
+    private router: Router,
+    private procesoService: ProcesoService
+  ) {}
 
-  get procesosFiltrados() {
-    let procesos = this.procesos();
+  ngOnInit() {
+    this.cargarProcesos();
+  }
+
+  cargarProcesos() {
+    this.cargando.set(true);
+    this.error.set(null);
+    this.procesoService.getByEmpresa(EMPRESA_ID).subscribe({
+      next: (data) => {
+        this.procesos.set(data);
+        this.cargando.set(false);
+      },
+      error: () => {
+        this.error.set('No se pudieron cargar los procesos. Verifica que el servidor esté activo.');
+        this.cargando.set(false);
+      }
+    });
+  }
+
+  get procesosFiltrados(): Proceso[] {
+    let lista = this.procesos();
 
     if (this.filtroEstado !== 'todos') {
-      procesos = procesos.filter(p => p.estado === this.filtroEstado);
+      lista = lista.filter(p => p.estado === this.filtroEstado);
     }
 
     if (this.searchTerm) {
-      procesos = procesos.filter(p =>
-        p.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        p.descripcion.toLowerCase().includes(this.searchTerm.toLowerCase())
+      const term = this.searchTerm.toLowerCase();
+      lista = lista.filter(p =>
+        p.nombre.toLowerCase().includes(term) ||
+        p.descripcion.toLowerCase().includes(term) ||
+        p.categoria.toLowerCase().includes(term) ||
+        p.estado.toLowerCase().includes(term)
       );
     }
 
-    return procesos;
+    return lista;
   }
 
   verProceso(id: number) {
@@ -102,48 +93,76 @@ export class ListaProcesos {
   }
 
   nuevoProceso() {
-    const siguienteId = Math.max(...this.procesos().map(p => p.id), 0) + 1;
-    const fechaHoy = new Date().toISOString().slice(0, 10);
-    const nuevo: Proceso = {
-      id: siguienteId,
-      nombre: 'Nuevo proceso',
-      descripcion: 'Describe este proceso',
+    this.editProceso = {
+      nombre: '',
+      descripcion: '',
+      categoria: '',
       estado: 'en-progreso',
-      progreso: 0,
-      fechaInicio: fechaHoy
+      empresaId: EMPRESA_ID
     };
-
-    this.procesos.update(procesos => [...procesos, nuevo]);
-    this.editarProcesoId.set(nuevo.id);
-    this.editProceso = { ...nuevo };
-
-    this.posiciones.update(posiciones => ({
-      ...posiciones,
-      [nuevo.id]: { x: 20, y: 20 }
-    }));
+    this.mostrarEditor.set(true);
   }
 
   editarProcesoItem(proceso: Proceso, event: MouseEvent) {
     event.stopPropagation();
-    this.editarProcesoId.set(proceso.id);
     this.editProceso = { ...proceso };
+    this.mostrarEditor.set(true);
   }
 
   guardarProceso() {
-    if (!this.editProceso) {
-      return;
+    if (!this.editProceso) return;
+
+    const { nombre, descripcion, categoria, estado, empresaId } = this.editProceso;
+    const payload: Omit<Proceso, 'id'> = { nombre, descripcion, categoria, estado, empresaId };
+
+    this.guardando.set(true);
+
+    if (this.editProceso.id !== undefined) {
+      this.procesoService.update(this.editProceso.id, payload).subscribe({
+        next: () => {
+          this.guardando.set(false);
+          this.cerrarEditor();
+          this.cargarProcesos();
+        },
+        error: () => {
+          this.guardando.set(false);
+          this.error.set('Error al guardar el proceso.');
+        }
+      });
+    } else {
+      this.procesoService.create(payload).subscribe({
+        next: () => {
+          this.guardando.set(false);
+          this.cerrarEditor();
+          this.cargarProcesos();
+        },
+        error: () => {
+          this.guardando.set(false);
+          this.error.set('Error al crear el proceso.');
+        }
+      });
     }
-
-    this.procesos.update(procesos => procesos.map(p =>
-      p.id === this.editProceso!.id ? { ...p, ...this.editProceso! } : p
-    ));
-
-    this.editarProcesoId.set(null);
-    this.editProceso = null;
   }
 
-  cancelarEdicion() {
-    this.editarProcesoId.set(null);
+  eliminarProceso(proceso: Proceso, event: MouseEvent) {
+    event.stopPropagation();
+    if (!confirm(`¿Eliminar el proceso "${proceso.nombre}"?`)) return;
+
+    this.eliminandoId.set(proceso.id);
+    this.procesoService.delete(proceso.id).subscribe({
+      next: () => {
+        this.eliminandoId.set(null);
+        this.cargarProcesos();
+      },
+      error: () => {
+        this.eliminandoId.set(null);
+        this.error.set('Error al eliminar el proceso.');
+      }
+    });
+  }
+
+  cerrarEditor() {
+    this.mostrarEditor.set(false);
     this.editProceso = null;
   }
 
@@ -157,29 +176,26 @@ export class ListaProcesos {
   }
 
   inicializarPosiciones() {
-    const posicionesActuales = this.posiciones();
-    if (Object.keys(posicionesActuales).length > 0) {
-      return;
-    }
+    const actuales = this.posiciones();
+    if (Object.keys(actuales).length > 0) return;
 
     const procesos = this.procesos();
     const ancho = 280;
-    const alto = 160;
+    const alto = 130;
     const cols = 3;
     const gap = 24;
-
-    const nuevasPosiciones: Record<number, { x: number; y: number }> = {};
+    const nuevas: Record<number, { x: number; y: number }> = {};
 
     procesos.forEach((proceso, index) => {
       const col = index % cols;
       const row = Math.floor(index / cols);
-      nuevasPosiciones[proceso.id] = {
+      nuevas[proceso.id] = {
         x: col * (ancho + gap) + 30,
         y: row * (alto + gap) + 30
       };
     });
 
-    this.posiciones.set(nuevasPosiciones);
+    this.posiciones.set(nuevas);
   }
 
   onTableroDragOver(event: DragEvent) {
@@ -195,21 +211,16 @@ export class ListaProcesos {
     event.preventDefault();
     const idString = event.dataTransfer?.getData('text/plain');
     const id = idString ? Number(idString) : null;
-    if (id === null || Number.isNaN(id)) {
-      return;
-    }
+    if (id === null || Number.isNaN(id)) return;
 
     const tablero = event.currentTarget as HTMLElement;
     const rect = tablero.getBoundingClientRect();
     const x = event.clientX - rect.left - 140;
     const y = event.clientY - rect.top - 50;
 
-    this.posiciones.update(posiciones => ({
-      ...posiciones,
-      [id]: {
-        x: Math.max(10, x),
-        y: Math.max(10, y)
-      }
+    this.posiciones.update(pos => ({
+      ...pos,
+      [id]: { x: Math.max(10, x), y: Math.max(10, y) }
     }));
   }
 
@@ -228,63 +239,40 @@ export class ListaProcesos {
       return;
     }
 
-    this.agregarConexion(this.conectarDesdeId, proceso.id);
+    const desde = this.conectarDesdeId;
+    const hasta = proceso.id;
+    if (desde !== hasta) {
+      const yaExiste = this.conexiones().some(
+        c => (c.from === desde && c.to === hasta) || (c.from === hasta && c.to === desde)
+      );
+      if (!yaExiste) {
+        this.conexiones.update(cs => [...cs, { from: desde, to: hasta }]);
+      }
+    }
     this.conectarDesdeId = null;
     this.mensajeConectar = '';
   }
 
-  agregarConexion(desde: number, hasta: number) {
-    if (desde === hasta) {
-      return;
-    }
-
-    const yaExiste = this.conexiones().some(
-      conexion => (conexion.from === desde && conexion.to === hasta) ||
-                  (conexion.from === hasta && conexion.to === desde)
-    );
-
-    if (yaExiste) {
-      return;
-    }
-
-    this.conexiones.update(conexiones => [...conexiones, { from: desde, to: hasta }]);
-  }
-
-  getNombreProceso(id: number): string {
-    return this.procesos().find(p => p.id === id)?.nombre || '';
+  getBoardStyles(proceso: Proceso) {
+    const pos = this.posiciones()[proceso.id] ?? { x: 30, y: 30 };
+    return { left: `${pos.x}px`, top: `${pos.y}px` };
   }
 
   getStatusColor(estado: string): string {
     switch (estado) {
-      case 'completado':
-        return 'completado';
-      case 'en-progreso':
-        return 'en-progreso';
-      case 'suspendido':
-        return 'suspendido';
-      default:
-        return '';
+      case 'completado': return 'completado';
+      case 'en-progreso': return 'en-progreso';
+      case 'suspendido': return 'suspendido';
+      default: return '';
     }
   }
 
   getStatusText(estado: string): string {
     switch (estado) {
-      case 'completado':
-        return 'Completado';
-      case 'en-progreso':
-        return 'En Progreso';
-      case 'suspendido':
-        return 'Suspendido';
-      default:
-        return '';
+      case 'completado': return 'Completado';
+      case 'en-progreso': return 'En Progreso';
+      case 'suspendido': return 'Suspendido';
+      default: return estado;
     }
-  }
-
-  getBoardStyles(proceso: Proceso) {
-    const posicion = this.posiciones()[proceso.id] ?? { x: 30, y: 30 };
-    return {
-      left: `${posicion.x}px`,
-      top: `${posicion.y}px`
-    };
   }
 }
