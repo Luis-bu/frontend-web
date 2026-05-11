@@ -97,7 +97,7 @@ export class ListaProcesos implements OnInit {
       nombre: '',
       descripcion: '',
       categoria: '',
-      estado: 'en-progreso',
+      estado: 'BORRADOR',
       empresaId: EMPRESA_ID
     };
     this.mostrarEditor.set(true);
@@ -260,18 +260,16 @@ export class ListaProcesos implements OnInit {
 
   getStatusColor(estado: string): string {
     switch (estado) {
-      case 'completado': return 'completado';
-      case 'en-progreso': return 'en-progreso';
-      case 'suspendido': return 'suspendido';
+      case 'BORRADOR': return 'borrador';
+      case 'PUBLICADO': return 'publicado';
       default: return '';
     }
   }
 
   getStatusText(estado: string): string {
     switch (estado) {
-      case 'completado': return 'Completado';
-      case 'en-progreso': return 'En Progreso';
-      case 'suspendido': return 'Suspendido';
+      case 'BORRADOR': return 'Borrador';
+      case 'PUBLICADO': return 'Publicado';
       default: return estado;
     }
   }

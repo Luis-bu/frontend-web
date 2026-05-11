@@ -76,18 +76,16 @@ export class DetallesProceso implements OnInit {
 
   getStatusColor(): string {
     switch (this.proceso()?.estado) {
-      case 'completado': return 'completado';
-      case 'en-progreso': return 'en-progreso';
-      case 'suspendido': return 'suspendido';
+      case 'BORRADOR': return 'borrador';
+      case 'PUBLICADO': return 'publicado';
       default: return '';
     }
   }
 
   getStatusText(): string {
     switch (this.proceso()?.estado) {
-      case 'completado': return 'Completado';
-      case 'en-progreso': return 'En Progreso';
-      case 'suspendido': return 'Suspendido';
+      case 'BORRADOR': return 'Borrador';
+      case 'PUBLICADO': return 'Publicado';
       default: return this.proceso()?.estado ?? '';
     }
   }

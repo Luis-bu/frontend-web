@@ -123,19 +123,14 @@
   font-weight: 600;
 }
 
-.status-badge.completado {
+.status-badge.borrador {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.publicado {
   background: #d1fae5;
   color: #065f46;
-}
-
-.status-badge.en-progreso {
-  background: #dbeafe;
-  color: #1e40af;
-}
-
-.status-badge.suspendido {
-  background: #fee2e2;
-  color: #991b1b;
 }
 
 .priority-badge.alta {
@@ -345,16 +340,12 @@
   color: #1e40af;
 }
 
-.status-text.completado {
+.status-text.borrador {
+  color: #92400e;
+}
+
+.status-text.publicado {
   color: #065f46;
-}
-
-.status-text.en-progreso {
-  color: #1e40af;
-}
-
-.status-text.suspendido {
-  color: #991b1b;
 }
 
 /* Actions Card */

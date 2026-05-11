@@ -496,6 +496,25 @@
   margin: 0;
 }
 
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.status-badge.borrador {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.status-badge.publicado {
+  background: #d1fae5;
+  color: #065f46;
+}
+
 .error-banner {
   max-width: 1200px;
   margin: 0 auto 20px;
