@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(node -e \"const a=require\\('./angular.json'\\); const b=a.projects['mi-app'].architect.build.configurations.production.budgets; console.log\\(JSON.stringify\\(b, null, 2\\)\\)\")",
+      "Bash(node -e ' *)",
+      "Bash(npm run *)",
+      "Bash(Get-ChildItem \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\" -Directory)",
+      "Bash(Select-Object Name)",
+      "Bash(./mvnw compile *)",
+      "Bash(bash mvnw compile -q)",
+      "Bash(cmd *)",
+      "Bash(claude doctor *)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(npx uipro-cli *)",
+      "Bash(Select-String -Path \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\components\\\\detalles-proceso\\\\detalles-proceso.css\" -Pattern \"btn-delete-sm\")",
+      "Bash(Select-Object -First 5)",
+      "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\components\\\\lista-estudiantes\")",
+      "Bash(Remove-Item -Force \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\models\\\\estudiante.model.ts\")"
+    ]
+  }
+}
