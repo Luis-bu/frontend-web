@@ -214,13 +214,55 @@
               </div>
               <div class="form-field form-field-full">
                 <label>Rol de proceso</label>
-                <select [(ngModel)]="actividadForm!.rolProcesoId">
-                  <option [ngValue]="null">Sin rol asignado</option>
-                  <option *ngFor="let rol of roles()" [ngValue]="rol.id">{{ rol.nombre }}</option>
-                </select>
-                <span *ngIf="roles().length === 0" class="field-hint">
-                  No hay roles creados para esta empresa. Puedes crear uno en la sección Roles de proceso.
-                </span>
+                <ng-container *ngIf="roles().length > 0; else sinRolesHint">
+                  <div class="rol-picker" [class.open]="rolPickerAbierto()">
+                    <button
+                      class="rol-picker-trigger"
+                      type="button"
+                      (click)="toggleRolPicker()"
+                    >
+                      <span class="rol-picker-label" [class.placeholder]="!actividadForm!.rolProcesoId">
+                        {{ getRolNombre(actividadForm!.rolProcesoId) !== '—' ? getRolNombre(actividadForm!.rolProcesoId) : 'Sin rol asignado' }}
+                      </span>
+                      <span class="rol-picker-chevron">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </span>
+                    </button>
+                    <div class="rol-picker-menu" *ngIf="rolPickerAbierto()">
+                      <button
+                        class="rol-picker-item"
+                        type="button"
+                        [class.active]="actividadForm!.rolProcesoId === null"
+                        (click)="seleccionarRolEnForm(null)"
+                      >
+                        <span class="rol-picker-item-main">
+                          <strong>Sin rol asignado</strong>
+                        </span>
+                        <span class="rol-picker-check" *ngIf="actividadForm!.rolProcesoId === null">✓</span>
+                      </button>
+                      <button
+                        class="rol-picker-item"
+                        type="button"
+                        *ngFor="let rol of roles()"
+                        [class.active]="actividadForm!.rolProcesoId === rol.id"
+                        (click)="seleccionarRolEnForm(rol.id)"
+                      >
+                        <span class="rol-picker-item-main">
+                          <strong>{{ rol.nombre }}</strong>
+                          <small *ngIf="rol.descripcion">{{ rol.descripcion }}</small>
+                        </span>
+                        <span class="rol-picker-check" *ngIf="actividadForm!.rolProcesoId === rol.id">✓</span>
+                      </button>
+                    </div>
+                  </div>
+                </ng-container>
+                <ng-template #sinRolesHint>
+                  <span class="field-hint">
+                    No hay roles creados para esta empresa. Puedes crear uno en la sección Roles de proceso.
+                  </span>
+                </ng-template>
               </div>
             </div>
             <div class="form-actions">

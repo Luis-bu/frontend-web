@@ -42,3 +42,6 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# Kubernetes secrets (credenciales reales — nunca versionar)
+k8s/backend-secret.yaml

@@ -101,6 +101,9 @@ export class DetallesProceso implements OnInit {
   errorArco = signal<string | null>(null);
   eliminandoArcoId = signal<number | null>(null);
 
+  // Picker de rol en form de actividad
+  rolPickerAbierto = signal(false);
+
   // Roles
   mostrarFormRol = signal(false);
   rolForm: RolForm | null = null;
@@ -280,6 +283,19 @@ export class DetallesProceso implements OnInit {
   cancelarActividad() {
     this.actividadForm = null;
     this.mostrarFormActividad.set(false);
+    this.rolPickerAbierto.set(false);
+  }
+
+  toggleRolPicker() { this.rolPickerAbierto.update(v => !v); }
+
+  seleccionarRolEnForm(rolId: number | null) {
+    if (this.actividadForm) this.actividadForm.rolProcesoId = rolId;
+    this.rolPickerAbierto.set(false);
+  }
+
+  getRolDescripcion(rolId: number | null | undefined): string {
+    if (!rolId) return '';
+    return this.roles().find(r => r.id === rolId)?.descripcion ?? '';
   }
 
   guardarActividad() {

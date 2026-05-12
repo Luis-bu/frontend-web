@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processflow-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: processflow-frontend
+  template:
+    metadata:
+      labels:
+        app: processflow-frontend
+    spec:
+      containers:
+        - name: processflow-frontend
+          image: processflow-frontend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 80

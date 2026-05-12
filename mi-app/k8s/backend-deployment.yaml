@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: processflow-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: processflow-backend
+  template:
+    metadata:
+      labels:
+        app: processflow-backend
+    spec:
+      containers:
+        - name: processflow-backend
+          image: processflow-backend:latest
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: processflow-backend-secret
+                  key: DB_URL
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: processflow-backend-secret
+                  key: DB_USERNAME
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: processflow-backend-secret
+                  key: DB_PASSWORD
+            - name: MAIL_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: processflow-backend-secret
+                  key: MAIL_USERNAME
+            - name: MAIL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: processflow-backend-secret
+                  key: MAIL_PASSWORD

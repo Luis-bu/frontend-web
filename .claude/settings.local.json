@@ -19,7 +19,11 @@
       "Bash(Select-String -Path \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\components\\\\detalles-proceso\\\\detalles-proceso.css\" -Pattern \"btn-delete-sm\")",
       "Bash(Select-Object -First 5)",
       "Bash(Remove-Item -Recurse -Force \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\components\\\\lista-estudiantes\")",
-      "Bash(Remove-Item -Force \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\models\\\\estudiante.model.ts\")"
+      "Bash(Remove-Item -Force \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\frontend-web\\\\mi-app\\\\src\\\\app\\\\models\\\\estudiante.model.ts\")",
+      "PowerShell(dir \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\BackendWeb\" -Recurse | Where-Object { $_.Name -match \"empresa\" -or $_.Name -match \"Empresa\" } | Select-Object FullName)",
+      "PowerShell(dir \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\BackendWeb\\\\src\" -Recurse | Where-Object { $_.Name -match \"mpresa\" } | Select-Object FullName)",
+      "PowerShell(dir \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\BackendWeb\\\\backend-web\" -Recurse | Where-Object { $_.Name -match \"mpresa\" } | Select-Object FullName)",
+      "PowerShell(Head *)"
     ]
   }
 }
