@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -44,6 +44,18 @@ interface RolForm {
   nombre: string;
   descripcion: string;
   empresaId: number;
+}
+
+export interface OrbitalNode {
+  visualId: string;
+  sourceId: number;
+  label: string;
+  type: 'ACTIVIDAD' | 'GATEWAY';
+  description?: string;
+  roleName?: string;
+  subtype?: string;
+  x: number;
+  y: number;
 }
 
 @Component({
@@ -93,6 +105,68 @@ export class DetallesProceso implements OnInit {
   errorRol = signal<string | null>(null);
   eliminandoRolId = signal<number | null>(null);
 
+  // ── Orbital view ────────────────────────────────────────────────────────
+  selectedOrbitalNode: OrbitalNode | null = null;
+
+  orbitalNodes = computed<OrbitalNode[]>(() => {
+    const actividades = this.actividades();
+    const gateways = this.gateways();
+    const total = actividades.length + gateways.length;
+    if (total === 0) return [];
+
+    const radius = Math.max(175, Math.min(220, total * 36));
+    const nodes: OrbitalNode[] = [];
+    let index = 0;
+
+    for (const act of actividades) {
+      const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
+      nodes.push({
+        visualId: `act-${act.id}`,
+        sourceId: act.id,
+        label: act.nombre,
+        type: 'ACTIVIDAD',
+        description: act.descripcion || undefined,
+        roleName: this.getRolNombre(act.rolProcesoId) !== '—' ? this.getRolNombre(act.rolProcesoId) : undefined,
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius
+      });
+      index++;
+    }
+
+    for (const gw of gateways) {
+      const angle = (index / total) * 2 * Math.PI - Math.PI / 2;
+      nodes.push({
+        visualId: `gw-${gw.id}`,
+        sourceId: gw.id,
+        label: `Gateway #${gw.id}`,
+        type: 'GATEWAY',
+        subtype: gw.tipo,
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius
+      });
+      index++;
+    }
+
+    return nodes;
+  });
+
+  selectOrbitalNode(node: OrbitalNode) {
+    this.selectedOrbitalNode =
+      this.selectedOrbitalNode?.visualId === node.visualId ? null : node;
+  }
+
+  getConnectionsCount(node: OrbitalNode): number {
+    const arcos = this.arcos();
+    if (node.type === 'ACTIVIDAD') {
+      return arcos.filter(a =>
+        a.actividadOrigenId === node.sourceId || a.actividadDestinoId === node.sourceId
+      ).length;
+    }
+    return arcos.filter(a =>
+      a.gatewayOrigenId === node.sourceId || a.gatewayDestinoId === node.sourceId
+    ).length;
+  }
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -128,10 +202,14 @@ export class DetallesProceso implements OnInit {
             this.roles.set(roles);
             this.loading.set(false);
           },
-          error: () => { this.loading.set(false); }
+          error: (err) => {
+            console.error('Error cargando datos del proceso:', err);
+            this.loading.set(false);
+          }
         });
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error cargando proceso:', err);
         this.error.set('No se pudo cargar el proceso. Verifica que el servidor esté activo.');
         this.loading.set(false);
       }
@@ -142,7 +220,7 @@ export class DetallesProceso implements OnInit {
 
   getStatusColor(): string {
     switch (this.proceso()?.estado) {
-      case 'BORRADOR': return 'borrador';
+      case 'BORRADOR':  return 'borrador';
       case 'PUBLICADO': return 'publicado';
       default: return '';
     }
@@ -150,7 +228,7 @@ export class DetallesProceso implements OnInit {
 
   getStatusText(): string {
     switch (this.proceso()?.estado) {
-      case 'BORRADOR': return 'Borrador';
+      case 'BORRADOR':  return 'Borrador';
       case 'PUBLICADO': return 'Publicado';
       default: return this.proceso()?.estado ?? '';
     }
@@ -195,7 +273,7 @@ export class DetallesProceso implements OnInit {
       tipo: f.tipo,
       descripcion: f.descripcion,
       procesoId: f.procesoId,
-      rolProcesoId: f.rolProcesoId ?? 0
+      rolProcesoId: f.rolProcesoId
     };
 
     const op = f.id !== undefined
@@ -208,7 +286,8 @@ export class DetallesProceso implements OnInit {
         this.cancelarActividad();
         this.actividadService.getByProceso(this.procesoId).subscribe(d => this.actividades.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error guardando actividad:', err);
         this.guardandoActividad.set(false);
         this.errorActividad.set('Error al guardar la actividad.');
       }
@@ -223,7 +302,8 @@ export class DetallesProceso implements OnInit {
         this.eliminandoActividadId.set(null);
         this.actividadService.getByProceso(this.procesoId).subscribe(d => this.actividades.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error eliminando actividad:', err);
         this.eliminandoActividadId.set(null);
         this.errorActividad.set('Error al eliminar la actividad.');
       }
@@ -271,7 +351,8 @@ export class DetallesProceso implements OnInit {
         this.cancelarGateway();
         this.gatewayService.getByProceso(this.procesoId).subscribe(d => this.gateways.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error guardando gateway:', err);
         this.guardandoGateway.set(false);
         this.errorGateway.set('Error al guardar el gateway.');
       }
@@ -286,7 +367,8 @@ export class DetallesProceso implements OnInit {
         this.eliminandoGatewayId.set(null);
         this.gatewayService.getByProceso(this.procesoId).subscribe(d => this.gateways.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error eliminando gateway:', err);
         this.eliminandoGatewayId.set(null);
         this.errorGateway.set('Error al eliminar el gateway.');
       }
@@ -333,10 +415,10 @@ export class DetallesProceso implements OnInit {
     const payload: Omit<Arco, 'id'> = {
       etiqueta: f.etiqueta,
       procesoId: f.procesoId,
-      ...(f.actividadOrigenId ? { actividadOrigenId: f.actividadOrigenId } : {}),
+      ...(f.actividadOrigenId  ? { actividadOrigenId:  f.actividadOrigenId  } : {}),
       ...(f.actividadDestinoId ? { actividadDestinoId: f.actividadDestinoId } : {}),
-      ...(f.gatewayOrigenId ? { gatewayOrigenId: f.gatewayOrigenId } : {}),
-      ...(f.gatewayDestinoId ? { gatewayDestinoId: f.gatewayDestinoId } : {})
+      ...(f.gatewayOrigenId    ? { gatewayOrigenId:    f.gatewayOrigenId    } : {}),
+      ...(f.gatewayDestinoId   ? { gatewayDestinoId:   f.gatewayDestinoId   } : {})
     };
 
     const op = f.id !== undefined
@@ -349,7 +431,8 @@ export class DetallesProceso implements OnInit {
         this.cancelarArco();
         this.arcoService.getByProceso(this.procesoId).subscribe(d => this.arcos.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error guardando arco:', err);
         this.guardandoArco.set(false);
         this.errorArco.set('Error al guardar el arco.');
       }
@@ -364,7 +447,8 @@ export class DetallesProceso implements OnInit {
         this.eliminandoArcoId.set(null);
         this.arcoService.getByProceso(this.procesoId).subscribe(d => this.arcos.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error eliminando arco:', err);
         this.eliminandoArcoId.set(null);
         this.errorArco.set('Error al eliminar el arco.');
       }
@@ -413,7 +497,8 @@ export class DetallesProceso implements OnInit {
         const empresaId = this.proceso()?.empresaId ?? 1;
         this.rolProcesoService.getByEmpresa(empresaId).subscribe(d => this.roles.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error guardando rol:', err);
         this.guardandoRol.set(false);
         this.errorRol.set('Error al guardar el rol.');
       }
@@ -429,7 +514,8 @@ export class DetallesProceso implements OnInit {
         const empresaId = this.proceso()?.empresaId ?? 1;
         this.rolProcesoService.getByEmpresa(empresaId).subscribe(d => this.roles.set(d));
       },
-      error: () => {
+      error: (err) => {
+        console.error('Error eliminando rol:', err);
         this.eliminandoRolId.set(null);
         this.errorRol.set('Error al eliminar el rol.');
       }

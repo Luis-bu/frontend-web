@@ -1,11 +1,11 @@
-import { Component, ElementRef, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, computed, ElementRef, HostListener, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProcesoService } from '../../services/proceso.service';
+import { EmpresaService } from '../../services/empresa.service';
 import { Proceso } from '../../models/proceso.model';
-
-const EMPRESA_ID = 1;
+import { Empresa } from '../../models/empresa.model';
 
 interface ProcesoForm {
   id?: number;
@@ -23,16 +23,26 @@ interface ProcesoForm {
   templateUrl: './lista-procesos.html',
   styleUrl: './lista-procesos.css'
 })
-export class ListaProcesos implements OnInit {
+export class ListaProcesos implements OnInit, OnDestroy {
   @ViewChild('tablero', { static: false }) tablero?: ElementRef<HTMLDivElement>;
 
-  procesos = signal<Proceso[]>([]);
-  cargando = signal(false);
-  error = signal<string | null>(null);
-  guardando = signal(false);
+  // ── Empresas ────────────────────────────────────────────────────────────
+  empresas               = signal<Empresa[]>([]);
+  cargandoEmpresas       = signal(false);
+  empresaSeleccionadaId  = signal<number | null>(null);
+  empresaSeleccionada    = computed(() =>
+    this.empresas().find(e => e.id === this.empresaSeleccionadaId()) ?? null
+  );
+  empresaDropdownAbierto = signal(false);
+
+  // ── Procesos ─────────────────────────────────────────────────────────────
+  procesos     = signal<Proceso[]>([]);
+  cargando     = signal(false);
+  error        = signal<string | null>(null);
+  guardando    = signal(false);
   eliminandoId = signal<number | null>(null);
 
-  searchTerm = '';
+  searchTerm   = '';
   filtroEstado = 'todos';
   modo: 'lista' | 'tablero' = 'lista';
 
@@ -44,19 +54,92 @@ export class ListaProcesos implements OnInit {
   conectarDesdeId: number | null = null;
   mensajeConectar = '';
 
+  draggingId: number | null = null;
+  private dragOffsetX = 0;
+  private dragOffsetY = 0;
+  private boardRect: DOMRect | null = null;
+  private readonly onMouseMoveFn = (e: MouseEvent) => this.onBoardMouseMove(e);
+  private readonly onMouseUpFn   = ()              => this.onBoardMouseUp();
+
   constructor(
     private router: Router,
-    private procesoService: ProcesoService
+    private procesoService: ProcesoService,
+    private empresaService: EmpresaService,
+    private elRef: ElementRef
   ) {}
 
   ngOnInit() {
+    this.cargarEmpresas();
+  }
+
+  ngOnDestroy() {
+    document.removeEventListener('mousemove', this.onMouseMoveFn);
+    document.removeEventListener('mouseup',   this.onMouseUpFn);
+  }
+
+  // Cierra el dropdown si el clic ocurre fuera del componente
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.elRef.nativeElement.contains(event.target)) {
+      this.empresaDropdownAbierto.set(false);
+    }
+  }
+
+  // ── Empresa ──────────────────────────────────────────────────────────────
+
+  cargarEmpresas() {
+    this.cargandoEmpresas.set(true);
+    this.error.set(null);
+
+    this.empresaService.getAll().subscribe({
+      next: (data) => {
+        this.empresas.set(data);
+        this.cargandoEmpresas.set(false);
+
+        if (data.length === 0) {
+          this.empresaSeleccionadaId.set(null);
+          this.procesos.set([]);
+          return;
+        }
+
+        const preferida = data.find(e => e.id === 1);
+        this.empresaSeleccionadaId.set(preferida ? preferida.id : data[0].id);
+        this.cargarProcesos();
+      },
+      error: () => {
+        this.error.set('No se pudieron cargar las empresas. Verifica que el servidor esté activo.');
+        this.cargandoEmpresas.set(false);
+      }
+    });
+  }
+
+  toggleEmpresaDropdown() {
+    this.empresaDropdownAbierto.update(open => !open);
+  }
+
+  seleccionarEmpresa(empresa: Empresa) {
+    this.empresaSeleccionadaId.set(empresa.id);
+    this.empresaDropdownAbierto.set(false);
+    this.cerrarEditor();
+    this.searchTerm         = '';
+    this.filtroEstado       = 'todos';
+    this.conectarDesdeId    = null;
+    this.mensajeConectar    = '';
+    this.conexiones.set([]);
+    this.posiciones.set({});
     this.cargarProcesos();
   }
 
+  // ── Procesos ─────────────────────────────────────────────────────────────
+
   cargarProcesos() {
+    const empresaId = this.empresaSeleccionadaId();
+    if (empresaId === null) return;
+
     this.cargando.set(true);
     this.error.set(null);
-    this.procesoService.getByEmpresa(EMPRESA_ID).subscribe({
+
+    this.procesoService.getByEmpresa(empresaId).subscribe({
       next: (data) => {
         this.procesos.set(data);
         this.cargando.set(false);
@@ -98,14 +181,17 @@ export class ListaProcesos implements OnInit {
       descripcion: '',
       categoria: '',
       estado: 'BORRADOR',
-      empresaId: EMPRESA_ID
+      empresaId: this.empresaSeleccionadaId() ?? 1
     };
     this.mostrarEditor.set(true);
   }
 
   editarProcesoItem(proceso: Proceso, event: MouseEvent) {
     event.stopPropagation();
-    this.editProceso = { ...proceso };
+    this.editProceso = {
+      ...proceso,
+      empresaId: proceso.empresaId ?? this.empresaSeleccionadaId() ?? 1
+    };
     this.mostrarEditor.set(true);
   }
 
@@ -166,6 +252,8 @@ export class ListaProcesos implements OnInit {
     this.editProceso = null;
   }
 
+  // ── Modo ─────────────────────────────────────────────────────────────────
+
   cambiarModo(modo: 'lista' | 'tablero') {
     this.modo = modo;
     if (modo === 'tablero') {
@@ -181,9 +269,9 @@ export class ListaProcesos implements OnInit {
 
     const procesos = this.procesos();
     const ancho = 280;
-    const alto = 130;
-    const cols = 3;
-    const gap = 24;
+    const alto  = 130;
+    const cols  = 3;
+    const gap   = 24;
     const nuevas: Record<number, { x: number; y: number }> = {};
 
     procesos.forEach((proceso, index) => {
@@ -191,38 +279,44 @@ export class ListaProcesos implements OnInit {
       const row = Math.floor(index / cols);
       nuevas[proceso.id] = {
         x: col * (ancho + gap) + 30,
-        y: row * (alto + gap) + 30
+        y: row * (alto  + gap) + 30
       };
     });
 
     this.posiciones.set(nuevas);
   }
 
-  onTableroDragOver(event: DragEvent) {
+  onCardMouseDown(event: MouseEvent, proceso: Proceso) {
+    if (event.button !== 0) return;
+    if ((event.target as HTMLElement).closest('button')) return;
     event.preventDefault();
+    const boardEl = this.tablero?.nativeElement;
+    if (!boardEl) return;
+    this.boardRect   = boardEl.getBoundingClientRect();
+    const pos        = this.posiciones()[proceso.id] ?? { x: 30, y: 30 };
+    this.draggingId  = proceso.id;
+    this.dragOffsetX = event.clientX - this.boardRect.left - pos.x;
+    this.dragOffsetY = event.clientY - this.boardRect.top  - pos.y;
+    document.addEventListener('mousemove', this.onMouseMoveFn);
+    document.addEventListener('mouseup',   this.onMouseUpFn);
   }
 
-  onCardDragStart(event: DragEvent, proceso: Proceso) {
-    event.dataTransfer?.setData('text/plain', proceso.id.toString());
-    event.dataTransfer?.setDragImage(new Image(), 0, 0);
+  private onBoardMouseMove(event: MouseEvent) {
+    if (this.draggingId === null || !this.boardRect) return;
+    const id = this.draggingId;
+    const x  = Math.max(0, event.clientX - this.boardRect.left - this.dragOffsetX);
+    const y  = Math.max(0, event.clientY - this.boardRect.top  - this.dragOffsetY);
+    this.posiciones.update(pos => ({ ...pos, [id]: { x, y } }));
   }
 
-  onTableroDrop(event: DragEvent) {
-    event.preventDefault();
-    const idString = event.dataTransfer?.getData('text/plain');
-    const id = idString ? Number(idString) : null;
-    if (id === null || Number.isNaN(id)) return;
-
-    const tablero = event.currentTarget as HTMLElement;
-    const rect = tablero.getBoundingClientRect();
-    const x = event.clientX - rect.left - 140;
-    const y = event.clientY - rect.top - 50;
-
-    this.posiciones.update(pos => ({
-      ...pos,
-      [id]: { x: Math.max(10, x), y: Math.max(10, y) }
-    }));
+  private onBoardMouseUp() {
+    this.draggingId = null;
+    this.boardRect  = null;
+    document.removeEventListener('mousemove', this.onMouseMoveFn);
+    document.removeEventListener('mouseup',   this.onMouseUpFn);
   }
+
+  // ── Conexiones ───────────────────────────────────────────────────────────
 
   iniciarConexion(proceso: Proceso, event: MouseEvent) {
     event.stopPropagation();
@@ -255,22 +349,24 @@ export class ListaProcesos implements OnInit {
 
   getBoardStyles(proceso: Proceso) {
     const pos = this.posiciones()[proceso.id] ?? { x: 30, y: 30 };
-    return { left: `${pos.x}px`, top: `${pos.y}px` };
+    return { transform: `translate(${pos.x}px, ${pos.y}px)` };
   }
+
+  // ── Helpers ──────────────────────────────────────────────────────────────
 
   getStatusColor(estado: string): string {
     switch (estado) {
-      case 'BORRADOR': return 'borrador';
+      case 'BORRADOR':  return 'borrador';
       case 'PUBLICADO': return 'publicado';
-      default: return '';
+      default:          return '';
     }
   }
 
   getStatusText(estado: string): string {
     switch (estado) {
-      case 'BORRADOR': return 'Borrador';
+      case 'BORRADOR':  return 'Borrador';
       case 'PUBLICADO': return 'Publicado';
-      default: return estado;
+      default:          return estado;
     }
   }
 }

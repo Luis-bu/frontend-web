@@ -4,5 +4,5 @@ export interface Actividad {
   tipo: string;
   descripcion: string;
   procesoId: number;
-  rolProcesoId: number;
+  rolProcesoId: number | null;
 }

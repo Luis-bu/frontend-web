@@ -1,180 +1,297 @@
 <div class="procesos-container">
-  <!-- Header -->
-  <div class="procesos-header">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <div class="procesos-header animate-fade-down">
     <div class="header-title">
-      <h1>Gestión de Procesos</h1>
+      <div class="sparkle-title">
+        <span class="sparkle sparkle-1"></span>
+        <span class="sparkle sparkle-2"></span>
+        <span class="sparkle sparkle-3"></span>
+        <span class="sparkle sparkle-4"></span>
+        <h1>Gestión de Procesos</h1>
+      </div>
       <p>Monitorea, edita y ordena tus procesos con un tablero drag &amp; drop.</p>
     </div>
-    <button class="btn-nuevo-proceso" (click)="nuevoProceso()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"/>
-        <line x1="5" y1="12" x2="19" y2="12"/>
+    <button
+      class="btn-nuevo-proceso"
+      (click)="nuevoProceso()"
+      [disabled]="empresaSeleccionadaId() === null || cargandoEmpresas()"
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
       Nuevo Proceso
     </button>
   </div>
 
-  <!-- Error -->
-  <div *ngIf="error()" class="error-banner">
+  <!-- ── Error banner ───────────────────────────────────────────────────── -->
+  <div *ngIf="error()" class="error-banner animate-fade-scale">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
     {{ error() }}
-    <button (click)="error.set(null)">✕</button>
+    <button (click)="error.set(null)" aria-label="Cerrar error">✕</button>
   </div>
 
-  <!-- Search and Filter -->
-  <div class="procesos-toolbar">
-    <div class="search-box">
-      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="11" cy="11" r="8"/>
-        <path d="m21 21-4.35-4.35"/>
-      </svg>
-      <input
-        type="text"
-        placeholder="Buscar por nombre, descripción, categoría o estado..."
-        [(ngModel)]="searchTerm"
-      />
+  <!-- ── Empresa selector ───────────────────────────────────────────────── -->
+  <div class="empresa-bar animate-fade-up delay-100">
+
+    <!-- Cargando empresas -->
+    <div *ngIf="cargandoEmpresas()" class="empresa-loading">
+      <div class="mini-spinner"></div>
+      <span>Cargando empresas...</span>
     </div>
 
-    <div class="filter-buttons">
-      <button class="filter-btn" [class.active]="filtroEstado === 'todos'" (click)="filtroEstado = 'todos'">Todos</button>
-      <button class="filter-btn" [class.active]="filtroEstado === 'BORRADOR'" (click)="filtroEstado = 'BORRADOR'">Borrador</button>
-      <button class="filter-btn" [class.active]="filtroEstado === 'PUBLICADO'" (click)="filtroEstado = 'PUBLICADO'">Publicado</button>
-    </div>
+    <!-- Selector moderno -->
+    <ng-container *ngIf="!cargandoEmpresas() && empresas().length > 0">
+      <div class="company-select" [class.open]="empresaDropdownAbierto()">
 
-    <div class="view-buttons">
-      <button class="view-btn" [class.active]="modo === 'lista'" (click)="cambiarModo('lista')">Vista lista</button>
-      <button class="view-btn" [class.active]="modo === 'tablero'" (click)="cambiarModo('tablero')">Ver tablero</button>
-    </div>
-  </div>
+        <label class="company-select-label">Empresa activa</label>
 
-  <!-- Editor Panel -->
-  <div *ngIf="mostrarEditor() && editProceso" class="editor-panel">
-    <div class="editor-card">
-      <div class="editor-header">
-        <h2>{{ editProceso.id !== undefined ? 'Editar Proceso' : 'Nuevo Proceso' }}</h2>
-        <button class="btn-cancel" (click)="cerrarEditor()">Cancelar</button>
-      </div>
-      <div class="editor-row">
-        <label>Nombre</label>
-        <input [(ngModel)]="editProceso.nombre" placeholder="Nombre del proceso" />
-      </div>
-      <div class="editor-row">
-        <label>Descripción</label>
-        <textarea rows="3" [(ngModel)]="editProceso.descripcion" placeholder="Describe este proceso"></textarea>
-      </div>
-      <div class="editor-row">
-        <label>Categoría</label>
-        <input [(ngModel)]="editProceso.categoria" placeholder="Categoría del proceso" />
-      </div>
-      <div class="editor-row">
-        <label>Estado</label>
-        <select [(ngModel)]="editProceso.estado">
-          <option value="BORRADOR">Borrador</option>
-          <option value="PUBLICADO">Publicado</option>
-        </select>
-      </div>
-      <div class="editor-actions">
-        <button class="btn-guardar" (click)="guardarProceso()" [disabled]="guardando()">
-          {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+        <button
+          class="company-select-trigger"
+          type="button"
+          (click)="toggleEmpresaDropdown()"
+          [attr.aria-expanded]="empresaDropdownAbierto()"
+          aria-haspopup="listbox"
+        >
+          <!-- Icono edificio -->
+          <span class="company-select-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </span>
+
+          <!-- Texto empresa seleccionada -->
+          <span class="company-select-content">
+            <strong>{{ empresaSeleccionada()?.nombre ?? 'Sin empresa' }}</strong>
+            <small>NIT&nbsp;{{ empresaSeleccionada()?.nit }}</small>
+          </span>
+
+          <!-- Chevron animado -->
+          <span class="company-select-chevron" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="6 9 12 15 18 9"/>
+            </svg>
+          </span>
         </button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Loading -->
-  <div *ngIf="cargando()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Cargando procesos...</p>
-  </div>
-
-  <div class="procesos-content" *ngIf="!cargando()">
-    <ng-container *ngIf="modo === 'lista'; else tableroView">
-      <div *ngIf="procesosFiltrados.length > 0; else noProcesos" class="procesos-grid">
-        <div *ngFor="let proceso of procesosFiltrados" class="proceso-card" (click)="verProceso(proceso.id)">
-          <div class="proceso-header">
-            <div class="proceso-title">
-              <h3>{{ proceso.nombre }}</h3>
-              <span class="status-badge" [class]="getStatusColor(proceso.estado)">
-                {{ getStatusText(proceso.estado) }}
-              </span>
-            </div>
-            <span class="categoria-tag">{{ proceso.categoria }}</span>
-          </div>
-
-          <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
-
-          <div class="proceso-footer">
-            <button class="btn-edit" (click)="editarProcesoItem(proceso, $event)">Editar</button>
-            <button
-              class="btn-delete"
-              (click)="eliminarProceso(proceso, $event)"
-              [disabled]="eliminandoId() === proceso.id"
-            >
-              {{ eliminandoId() === proceso.id ? '...' : 'Eliminar' }}
-            </button>
-            <span class="proceso-footer-text">Clic para ver detalles</span>
-          </div>
+        <!-- Dropdown -->
+        <div
+          class="company-select-menu"
+          role="listbox"
+          *ngIf="empresaDropdownAbierto()"
+        >
+          <button
+            class="company-select-item"
+            type="button"
+            role="option"
+            *ngFor="let empresa of empresas()"
+            [class.active]="empresa.id === empresaSeleccionadaId()"
+            [attr.aria-selected]="empresa.id === empresaSeleccionadaId()"
+            (click)="seleccionarEmpresa(empresa)"
+          >
+            <span class="company-item-main">
+              <strong>{{ empresa.nombre }}</strong>
+              <small>NIT {{ empresa.nit }}&nbsp;·&nbsp;{{ empresa.correoContacto }}</small>
+            </span>
+            <span class="company-item-check" *ngIf="empresa.id === empresaSeleccionadaId()" aria-hidden="true">✓</span>
+          </button>
         </div>
+
       </div>
     </ng-container>
 
-    <ng-template #tableroView>
-      <div class="board-container">
-        <div class="board-toolbar">
-          <span>Arrastra los procesos dentro del tablero para reorganizarlos.</span>
-          <span>Presiona "Conectar" en un proceso y luego haz clic en otro para unirlos.</span>
-        </div>
-        <div *ngIf="mensajeConectar" class="connection-hint">{{ mensajeConectar }}</div>
-        <div class="board-area" #tablero (dragover)="onTableroDragOver($event)" (drop)="onTableroDrop($event)">
-          <svg class="board-svg" preserveAspectRatio="none">
-            <line
-              *ngFor="let conexion of conexiones()"
-              [attr.x1]="(posiciones()[conexion.from]?.x || 0) + 140"
-              [attr.y1]="(posiciones()[conexion.from]?.y || 0) + 50"
-              [attr.x2]="(posiciones()[conexion.to]?.x || 0) + 140"
-              [attr.y2]="(posiciones()[conexion.to]?.y || 0) + 50"
-            />
-          </svg>
+    <!-- Sin empresas registradas -->
+    <div *ngIf="!cargandoEmpresas() && empresas().length === 0" class="empresa-empty-hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+      </svg>
+      No hay empresas registradas. Crea una empresa primero.
+    </div>
 
+  </div>
+
+  <!-- ── Sin empresas: estado vacío principal ───────────────────────────── -->
+  <div *ngIf="!cargandoEmpresas() && empresas().length === 0 && !error()" class="sin-empresas animate-fade-scale delay-200">
+    <div class="sin-empresas-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    </div>
+    <h3>No hay empresas registradas</h3>
+    <p>Crea una empresa primero para poder gestionar sus procesos.</p>
+  </div>
+
+  <!-- ── Contenido principal (sólo si hay empresa seleccionada) ─────────── -->
+  <ng-container *ngIf="empresaSeleccionadaId() !== null && !cargandoEmpresas()">
+
+    <!-- Toolbar -->
+    <div class="procesos-toolbar animate-fade-up delay-200">
+      <div class="search-box">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        <input
+          type="text"
+          placeholder="Buscar por nombre, descripción, categoría o estado..."
+          [(ngModel)]="searchTerm"
+        />
+      </div>
+
+      <div class="filter-buttons">
+        <button class="filter-btn" [class.active]="filtroEstado === 'todos'"     (click)="filtroEstado = 'todos'">Todos</button>
+        <button class="filter-btn" [class.active]="filtroEstado === 'BORRADOR'"  (click)="filtroEstado = 'BORRADOR'">Borrador</button>
+        <button class="filter-btn" [class.active]="filtroEstado === 'PUBLICADO'" (click)="filtroEstado = 'PUBLICADO'">Publicado</button>
+      </div>
+
+      <div class="view-buttons">
+        <button class="view-btn" [class.active]="modo === 'lista'"   (click)="cambiarModo('lista')">Vista lista</button>
+        <button class="view-btn" [class.active]="modo === 'tablero'" (click)="cambiarModo('tablero')">Ver tablero</button>
+      </div>
+    </div>
+
+    <!-- Editor Panel -->
+    <div *ngIf="mostrarEditor() && editProceso" class="editor-panel animate-fade-scale">
+      <div class="editor-card">
+        <div class="editor-header">
+          <h2>{{ editProceso.id !== undefined ? 'Editar Proceso' : 'Nuevo Proceso' }}</h2>
+          <button class="btn-cancel" (click)="cerrarEditor()">Cancelar</button>
+        </div>
+        <div class="editor-row">
+          <label>Nombre</label>
+          <input [(ngModel)]="editProceso.nombre" placeholder="Nombre del proceso" />
+        </div>
+        <div class="editor-row">
+          <label>Descripción</label>
+          <textarea rows="3" [(ngModel)]="editProceso.descripcion" placeholder="Describe este proceso"></textarea>
+        </div>
+        <div class="editor-row">
+          <label>Categoría</label>
+          <input [(ngModel)]="editProceso.categoria" placeholder="Categoría del proceso" />
+        </div>
+        <div class="editor-row">
+          <label>Estado</label>
+          <select [(ngModel)]="editProceso.estado">
+            <option value="BORRADOR">Borrador</option>
+            <option value="PUBLICADO">Publicado</option>
+          </select>
+        </div>
+        <div class="editor-actions">
+          <button class="btn-guardar" (click)="guardarProceso()" [disabled]="guardando()">
+            {{ guardando() ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading procesos -->
+    <div *ngIf="cargando()" class="loading-state">
+      <div class="spinner"></div>
+      <p>Cargando procesos...</p>
+    </div>
+
+    <!-- Procesos content -->
+    <div class="procesos-content" *ngIf="!cargando()">
+      <ng-container *ngIf="modo === 'lista'; else tableroView">
+
+        <div *ngIf="procesosFiltrados.length > 0; else noProcesos" class="procesos-grid">
           <div
-            *ngFor="let proceso of procesosFiltrados"
-            class="board-card"
-            draggable="true"
-            (dragstart)="onCardDragStart($event, proceso)"
-            [style.left]="getBoardStyles(proceso).left"
-            [style.top]="getBoardStyles(proceso).top"
+            *ngFor="let proceso of procesosFiltrados; let i = index"
+            class="proceso-card hover-lift animate-fade-up"
+            [style.animation-delay]="(i * 0.08) + 's'"
+            (click)="verProceso(proceso.id)"
           >
-            <div class="board-card-title">
-              <strong>{{ proceso.nombre }}</strong>
-              <span class="status-badge" [class]="getStatusColor(proceso.estado)">
-                {{ getStatusText(proceso.estado) }}
-              </span>
-            </div>
-            <p>{{ proceso.descripcion }}</p>
-            <div class="board-card-footer">
+            <div class="proceso-header">
+              <div class="proceso-title">
+                <h3>{{ proceso.nombre }}</h3>
+                <span class="status-badge" [class]="getStatusColor(proceso.estado)">
+                  {{ getStatusText(proceso.estado) }}
+                </span>
+              </div>
               <span class="categoria-tag">{{ proceso.categoria }}</span>
-              <button class="btn-connect" [class.active]="conectarDesdeId === proceso.id" (click)="iniciarConexion(proceso, $event)">
-                {{ conectarDesdeId === proceso.id ? 'Cancelar' : 'Conectar' }}
+            </div>
+
+            <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
+
+            <div class="proceso-footer">
+              <button class="btn-edit" (click)="editarProcesoItem(proceso, $event)">Editar</button>
+              <button
+                class="btn-delete"
+                (click)="eliminarProceso(proceso, $event)"
+                [disabled]="eliminandoId() === proceso.id"
+              >
+                {{ eliminandoId() === proceso.id ? '...' : 'Eliminar' }}
               </button>
+              <span class="proceso-footer-text">Clic para ver detalles</span>
             </div>
           </div>
         </div>
-      </div>
-    </ng-template>
 
-    <ng-template #noProcesos>
-      <div class="no-procesos">
-        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-        </svg>
-        <ng-container *ngIf="procesos().length === 0; else sinResultados">
-          <h3>Sin procesos registrados</h3>
-          <p>No hay procesos registrados para esta empresa. Crea el primero.</p>
-        </ng-container>
-        <ng-template #sinResultados>
-          <h3>Sin resultados</h3>
-          <p>No se encontraron procesos que coincidan con tu búsqueda.</p>
-        </ng-template>
-      </div>
-    </ng-template>
-  </div>
+      </ng-container>
+
+      <ng-template #tableroView>
+        <div class="board-container">
+          <div class="board-toolbar">
+            <span>Arrastra los procesos dentro del tablero para reorganizarlos.</span>
+            <span>Presiona "Conectar" en un proceso y luego haz clic en otro para unirlos.</span>
+          </div>
+          <div *ngIf="mensajeConectar" class="connection-hint">{{ mensajeConectar }}</div>
+          <div class="board-area" #tablero>
+            <svg class="board-svg" preserveAspectRatio="none">
+              <line
+                *ngFor="let conexion of conexiones()"
+                [attr.x1]="(posiciones()[conexion.from]?.x || 0) + 140"
+                [attr.y1]="(posiciones()[conexion.from]?.y || 0) + 50"
+                [attr.x2]="(posiciones()[conexion.to]?.x || 0) + 140"
+                [attr.y2]="(posiciones()[conexion.to]?.y || 0) + 50"
+              />
+            </svg>
+
+            <div
+              *ngFor="let proceso of procesosFiltrados"
+              class="board-card"
+              [class.is-dragging]="draggingId === proceso.id"
+              (mousedown)="onCardMouseDown($event, proceso)"
+              [style.transform]="getBoardStyles(proceso).transform"
+            >
+              <div class="board-card-title">
+                <strong>{{ proceso.nombre }}</strong>
+                <span class="status-badge" [class]="getStatusColor(proceso.estado)">
+                  {{ getStatusText(proceso.estado) }}
+                </span>
+              </div>
+              <p>{{ proceso.descripcion }}</p>
+              <div class="board-card-footer">
+                <span class="categoria-tag">{{ proceso.categoria }}</span>
+                <button class="btn-connect" [class.active]="conectarDesdeId === proceso.id" (click)="iniciarConexion(proceso, $event)">
+                  {{ conectarDesdeId === proceso.id ? 'Cancelar' : 'Conectar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-template>
+
+      <ng-template #noProcesos>
+        <div class="no-procesos animate-fade-scale">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <ng-container *ngIf="searchTerm || filtroEstado !== 'todos'; else sinProcesosEmpresa">
+            <h3>Sin resultados</h3>
+            <p>No se encontraron procesos que coincidan con tu búsqueda.</p>
+          </ng-container>
+          <ng-template #sinProcesosEmpresa>
+            <h3>Sin procesos registrados</h3>
+            <p>No hay procesos registrados para esta empresa. Crea el primero con el botón "Nuevo Proceso".</p>
+          </ng-template>
+        </div>
+      </ng-template>
+
+    </div><!-- /procesos-content -->
+  </ng-container>
+
 </div>

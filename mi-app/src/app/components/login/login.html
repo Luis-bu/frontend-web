@@ -1,109 +1,112 @@
-<div class="login-fullscreen">
-  <!-- Left Side - Login Form -->
-  <div class="login-left">
-    <!-- Decorative dots -->
-    <div class="absolute-decoration top-decoration">
-      <svg width="80" height="80" viewBox="0 0 80 80">
-        <circle cx="4" cy="4" r="2" fill="#FFD700" />
-        <circle cx="16" cy="4" r="2" fill="#FFD700" />
-        <circle cx="28" cy="4" r="2" fill="#FFD700" />
-        <circle cx="40" cy="4" r="2" fill="#FFD700" />
-        <circle cx="4" cy="16" r="2" fill="#FFD700" />
-        <circle cx="16" cy="16" r="2" fill="#FFD700" />
-        <circle cx="28" cy="16" r="2" fill="#FFD700" />
-        <circle cx="40" cy="16" r="2" fill="#FFD700" />
-        <circle cx="4" cy="28" r="2" fill="#FFD700" />
-        <circle cx="16" cy="28" r="2" fill="#FFD700" />
-        <circle cx="28" cy="28" r="2" fill="#FFD700" />
-        <circle cx="40" cy="28" r="2" fill="#FFD700" />
-      </svg>
+<div class="login-page">
+
+  <!-- ── Floating theme toggle (visible on login since nav is hidden) ──── -->
+  <button
+    class="theme-toggle login-theme-toggle"
+    type="button"
+    (click)="toggleTheme()"
+    [title]="theme === 'dark' ? 'Cambiar a claro' : 'Cambiar a oscuro'"
+  >
+    <span>{{ theme === 'dark' ? '☀️' : '🌙' }}</span>
+  </button>
+
+  <!-- ── Panel izquierdo: Formulario ─────────────────────────────────────── -->
+  <section class="login-panel">
+
+    <!-- Brand con sparkles -->
+    <div class="brand animate-fade-down delay-100">
+      <div class="sparkle-wrap">
+        <span class="sparkle sparkle-1"></span>
+        <span class="sparkle sparkle-2"></span>
+        <span class="sparkle sparkle-3"></span>
+        <div class="brand-icon">PF</div>
+      </div>
+      <span>ProcessFlow</span>
     </div>
 
-    <!-- Diagonal lines -->
-    <svg class="diagonal-lines" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <line x1="20" y1="0" x2="80" y2="200" stroke="#FFD700" stroke-width="2" />
-      <line x1="60" y1="0" x2="120" y2="200" stroke="#FFD700" stroke-width="1" />
-      <line x1="100" y1="0" x2="160" y2="200" stroke="#FFD700" stroke-width="2" />
-    </svg>
+    <div class="login-copy">
+      <h1 class="animate-fade-up delay-200">Bienvenido a<br>ProcessFlow</h1>
+      <p class="animate-fade-up delay-300">Gestiona procesos empresariales con claridad, trazabilidad y control.</p>
+      <span class="typewriter animate-fade-up delay-400">
+        {{ currentText() }}<span class="typewriter-cursor">|</span>
+      </span>
+    </div>
 
-    <div class="login-form-container">
-      <!-- Headline -->
-      <div class="headline">
-        <h1 class="main-title">
-          <span class="gold-text">Gestiona procesos</span><br/>con claridad
-        </h1>
-        <p class="subtitle">
-          Organiza estudiantes, procesos y seguimiento académico desde un solo lugar
-        </p>
+    <form class="login-card animate-fade-scale delay-500" (ngSubmit)="onLogin()" autocomplete="on">
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label" for="login-email">Correo electrónico</label>
+        <input
+          id="login-email"
+          class="form-input"
+          type="email"
+          placeholder="tu@empresa.com"
+          [ngModel]="email()"
+          (ngModelChange)="email.set($event)"
+          [ngModelOptions]="{ updateOn: 'change' }"
+          name="email"
+          autocomplete="email"
+        />
       </div>
 
-      <!-- Form -->
-      <form (ngSubmit)="onLogin()" class="login-form">
-        <!-- Email Input -->
-        <div class="form-group">
-          <label for="email" class="form-label">Email</label>
-          <input
-            id="email"
-            type="email"
-            placeholder="tu@email.com"
-            [(ngModel)]="email"
-            [ngModelOptions]="{ updateOn: 'change' }"
-            name="email"
-            class="form-input"
-            required
-          />
-        </div>
-
-        <!-- Password Input -->
-        <div class="form-group">
-          <label for="password" class="form-label">Contraseña</label>
-          <input
-            id="password"
-            [type]="showPassword() ? 'text' : 'password'"
-            placeholder="••••••••••"
-            [(ngModel)]="password"
-            [ngModelOptions]="{ updateOn: 'change' }"
-            name="password"
-            class="form-input"
-            required
-          />
-        </div>
-
-        <!-- Error Message -->
-        <div *ngIf="errorMessage()" class="error-message">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="12" y1="8" x2="12" y2="12"/>
-            <line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          {{ errorMessage() }}
-        </div>
-
-        <!-- Remember & Forgot -->
-        <div class="remember-forgot">
-          <label class="remember-checkbox">
-            <div class="checkbox-box"></div>
-            <span>Recordarme</span>
-          </label>
+      <!-- Contraseña -->
+      <div class="form-group">
+        <div class="label-row">
+          <label class="form-label" for="login-password">Contraseña</label>
           <button type="button" class="forgot-link">¿Olvidaste tu contraseña?</button>
         </div>
-
-        <!-- Sign In Button -->
-        <button type="submit" class="signin-button" [disabled]="isLoading()">
-          <span *ngIf="!isLoading()">Iniciar sesión</span>
-          <span *ngIf="isLoading()" class="loading-text">Cargando...</span>
-        </button>
-      </form>
-
-      <!-- Divider -->
-      <div class="divider">
-        <div class="divider-line"></div>
-        <span class="divider-text">O continúa con</span>
+        <div class="password-wrap">
+          <input
+            id="login-password"
+            class="form-input"
+            [type]="showPassword() ? 'text' : 'password'"
+            placeholder="••••••••"
+            [ngModel]="password()"
+            (ngModelChange)="password.set($event)"
+            [ngModelOptions]="{ updateOn: 'change' }"
+            name="password"
+            autocomplete="current-password"
+          />
+          <button type="button" class="eye-btn" (click)="togglePasswordVisibility()" [attr.aria-label]="showPassword() ? 'Ocultar' : 'Ver contraseña'">
+            <svg *ngIf="!showPassword()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            <svg *ngIf="showPassword()" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+              <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+              <line x1="1" y1="1" x2="23" y2="23"/>
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <!-- Google Sign In -->
-      <button type="button" class="google-button">
-        <svg class="google-icon" viewBox="0 0 24 24">
+      <!-- Error -->
+      <div *ngIf="errorMessage()" class="login-error" role="alert">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        {{ errorMessage() }}
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="isLoading()">
+        <span *ngIf="!isLoading()">Iniciar sesión</span>
+        <span *ngIf="isLoading()" class="login-loading">
+          <svg class="login-spinner" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" opacity=".25"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          Autenticando...
+        </span>
+      </button>
+
+      <!-- Divider -->
+      <div class="divider"><span>O continúa con</span></div>
+
+      <!-- Google -->
+      <button type="button" class="btn btn-secondary btn-full">
+        <svg width="18" height="18" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
           <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
           <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -111,64 +114,47 @@
         </svg>
         Continuar con Google
       </button>
+
+    </form>
+  </section>
+
+  <!-- ── Panel derecho: Hero ──────────────────────────────────────────────── -->
+  <section class="login-hero" aria-hidden="true">
+    <div class="hero-content">
+
+      <div class="hero-kicker">Editor y visualizador de procesos</div>
+
+      <h2>Control total sobre tus procesos empresariales</h2>
+
+      <p>Administra empresas, procesos, roles, actividades, gateways y arcos desde un solo lugar.</p>
+
+      <div class="hero-features">
+        <div class="hero-feature">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Gestión multiempresa
+        </div>
+        <div class="hero-feature">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Procesos en borrador y publicados
+        </div>
+        <div class="hero-feature">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Actividades y roles funcionales
+        </div>
+        <div class="hero-feature">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Gateways y arcos
+        </div>
+        <div class="hero-feature">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          Visualización orbital del flujo
+        </div>
+      </div>
+
     </div>
-  </div>
+  </section>
 
-  <!-- Right Side - Abstract Geometric Design -->
-  <div class="login-right">
-    <!-- Large circle outline -->
-    <div class="geometric-shape large-circle"></div>
-
-    <!-- Medium circle -->
-    <div class="geometric-shape medium-circle"></div>
-
-    <!-- 3D Cube wireframe -->
-    <svg class="cube-wireframe" width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-      <g stroke="#FFD700" stroke-width="1.5" fill="none" opacity="0.3">
-        <!-- Front face -->
-        <polygon points="50,80 150,80 150,180 50,180" />
-        <!-- Back face -->
-        <polygon points="80,50 180,50 180,150 80,150" />
-        <!-- Connecting lines -->
-        <line x1="50" y1="80" x2="80" y2="50" />
-        <line x1="150" y1="80" x2="180" y2="50" />
-        <line x1="150" y1="180" x2="180" y2="150" />
-        <line x1="50" y1="180" x2="80" y2="150" />
-      </g>
-    </svg>
-
-    <!-- Small accent circles -->
-    <div class="accent-dot accent-1"></div>
-    <div class="accent-dot accent-2"></div>
-    <div class="accent-dot accent-3"></div>
-
-    <!-- Dot pattern - top right -->
-    <div class="dot-pattern top-right-dots">
-      <svg width="100" height="100" viewBox="0 0 100 100">
-        <circle cx="5" cy="5" r="2" fill="#FFD700" />
-        <circle cx="20" cy="5" r="2" fill="#FFD700" />
-        <circle cx="35" cy="5" r="2" fill="#FFD700" />
-        <circle cx="50" cy="5" r="2" fill="#FFD700" />
-        <circle cx="5" cy="20" r="2" fill="#FFD700" />
-        <circle cx="20" cy="20" r="2" fill="#FFD700" />
-        <circle cx="35" cy="20" r="2" fill="#FFD700" />
-        <circle cx="50" cy="20" r="2" fill="#FFD700" />
-        <circle cx="5" cy="35" r="2" fill="#FFD700" />
-        <circle cx="20" cy="35" r="2" fill="#FFD700" />
-        <circle cx="35" cy="35" r="2" fill="#FFD700" />
-        <circle cx="50" cy="35" r="2" fill="#FFD700" />
-      </svg>
-    </div>
-
-    <!-- Diagonal accent lines -->
-    <svg class="diagonal-accent" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
-      <line x1="0" y1="400" x2="200" y2="500" stroke="#FFD700" stroke-width="2" />
-      <line x1="50" y1="400" x2="250" y2="500" stroke="#FFD700" stroke-width="1" />
-      <line x1="100" y1="400" x2="300" y2="500" stroke="#FFD700" stroke-width="2" />
-    </svg>
-
-    <!-- Gradient overlay for depth -->
-    <div class="gradient-overlay"></div>
-  </div>
 </div>
 
+<!-- Curtain propio del login (nav curtain oculto en esta pantalla) -->
+<div class="theme-curtain" id="login-curtain"></div>
