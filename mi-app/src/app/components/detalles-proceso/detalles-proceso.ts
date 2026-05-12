@@ -8,6 +8,7 @@ import { ActividadService } from '../../services/actividad.service';
 import { GatewayService } from '../../services/gateway.service';
 import { ArcoService } from '../../services/arco.service';
 import { RolProcesoService } from '../../services/rol-proceso.service';
+import { ToastService } from '../../services/toast.service';
 import { Proceso } from '../../models/proceso.model';
 import { Actividad } from '../../models/actividad.model';
 import { Gateway } from '../../models/gateway.model';
@@ -77,6 +78,8 @@ export class DetallesProceso implements OnInit {
   arcos = signal<Arco[]>([]);
   roles = signal<RolProceso[]>([]);
 
+  confirmarKey = signal<string | null>(null);
+
   // Actividades
   mostrarFormActividad = signal(false);
   actividadForm: ActividadForm | null = null;
@@ -104,6 +107,22 @@ export class DetallesProceso implements OnInit {
   guardandoRol = signal(false);
   errorRol = signal<string | null>(null);
   eliminandoRolId = signal<number | null>(null);
+
+  private readonly rolesDelProceso = new Set<number>();
+
+  rolesEnUsoPorProceso = computed<Set<number>>(() => {
+    const ids = new Set<number>();
+    for (const act of this.actividades()) {
+      if (act.rolProcesoId != null) ids.add(act.rolProcesoId);
+    }
+    return ids;
+  });
+
+  rolesMostrados = computed<RolProceso[]>(() =>
+    this.roles().filter(r =>
+      this.rolesEnUsoPorProceso().has(r.id) || this.rolesDelProceso.has(r.id)
+    )
+  );
 
   // ── Orbital view ────────────────────────────────────────────────────────
   selectedOrbitalNode: OrbitalNode | null = null;
@@ -174,7 +193,8 @@ export class DetallesProceso implements OnInit {
     private actividadService: ActividadService,
     private gatewayService: GatewayService,
     private arcoService: ArcoService,
-    private rolProcesoService: RolProcesoService
+    private rolProcesoService: RolProcesoService,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -280,32 +300,35 @@ export class DetallesProceso implements OnInit {
       ? this.actividadService.update(f.id, payload)
       : this.actividadService.create(payload);
 
+    const esEdicion = f.id !== undefined;
     op.subscribe({
       next: () => {
         this.guardandoActividad.set(false);
         this.cancelarActividad();
         this.actividadService.getByProceso(this.procesoId).subscribe(d => this.actividades.set(d));
+        this.toast.success(esEdicion ? 'Actividad actualizada' : 'Actividad creada');
       },
       error: (err) => {
-        console.error('Error guardando actividad:', err);
         this.guardandoActividad.set(false);
         this.errorActividad.set('Error al guardar la actividad.');
+        this.toast.error(esEdicion ? 'Error al editar la actividad' : 'Error al crear la actividad');
       }
     });
   }
 
   eliminarActividad(id: number) {
-    if (!confirm('¿Eliminar esta actividad?')) return;
+    this.confirmarKey.set(null);
     this.eliminandoActividadId.set(id);
     this.actividadService.delete(id).subscribe({
       next: () => {
         this.eliminandoActividadId.set(null);
-        this.actividadService.getByProceso(this.procesoId).subscribe(d => this.actividades.set(d));
+        this.actividades.update(list => list.filter(a => a.id !== id));
+        this.toast.success('Actividad eliminada');
       },
-      error: (err) => {
-        console.error('Error eliminando actividad:', err);
+      error: () => {
         this.eliminandoActividadId.set(null);
         this.errorActividad.set('Error al eliminar la actividad.');
+        this.toast.error('Error al eliminar la actividad');
       }
     });
   }
@@ -345,32 +368,35 @@ export class DetallesProceso implements OnInit {
       ? this.gatewayService.update(f.id, payload)
       : this.gatewayService.create(payload);
 
+    const esEdicionGw = f.id !== undefined;
     op.subscribe({
       next: () => {
         this.guardandoGateway.set(false);
         this.cancelarGateway();
         this.gatewayService.getByProceso(this.procesoId).subscribe(d => this.gateways.set(d));
+        this.toast.success(esEdicionGw ? 'Gateway actualizado' : 'Gateway creado');
       },
-      error: (err) => {
-        console.error('Error guardando gateway:', err);
+      error: () => {
         this.guardandoGateway.set(false);
         this.errorGateway.set('Error al guardar el gateway.');
+        this.toast.error(esEdicionGw ? 'Error al editar el gateway' : 'Error al crear el gateway');
       }
     });
   }
 
   eliminarGateway(id: number) {
-    if (!confirm('¿Eliminar este gateway?')) return;
+    this.confirmarKey.set(null);
     this.eliminandoGatewayId.set(id);
     this.gatewayService.delete(id).subscribe({
       next: () => {
         this.eliminandoGatewayId.set(null);
-        this.gatewayService.getByProceso(this.procesoId).subscribe(d => this.gateways.set(d));
+        this.gateways.update(list => list.filter(g => g.id !== id));
+        this.toast.success('Gateway eliminado');
       },
-      error: (err) => {
-        console.error('Error eliminando gateway:', err);
+      error: () => {
         this.eliminandoGatewayId.set(null);
         this.errorGateway.set('Error al eliminar el gateway.');
+        this.toast.error('Error al eliminar el gateway');
       }
     });
   }
@@ -406,8 +432,20 @@ export class DetallesProceso implements OnInit {
     this.mostrarFormArco.set(false);
   }
 
+  get arcoTieneBucle(): boolean {
+    const f = this.arcoForm;
+    if (!f) return false;
+    if (f.actividadOrigenId !== null && f.actividadOrigenId === f.actividadDestinoId) return true;
+    if (f.gatewayOrigenId   !== null && f.gatewayOrigenId   === f.gatewayDestinoId)   return true;
+    return false;
+  }
+
   guardarArco() {
     if (!this.arcoForm) return;
+    if (this.arcoTieneBucle) {
+      this.errorArco.set('El origen y el destino no pueden ser el mismo elemento.');
+      return;
+    }
     this.guardandoArco.set(true);
     this.errorArco.set(null);
 
@@ -425,32 +463,35 @@ export class DetallesProceso implements OnInit {
       ? this.arcoService.update(f.id, payload)
       : this.arcoService.create(payload);
 
+    const esEdicionArco = f.id !== undefined;
     op.subscribe({
       next: () => {
         this.guardandoArco.set(false);
         this.cancelarArco();
         this.arcoService.getByProceso(this.procesoId).subscribe(d => this.arcos.set(d));
+        this.toast.success(esEdicionArco ? 'Arco actualizado' : 'Arco creado');
       },
-      error: (err) => {
-        console.error('Error guardando arco:', err);
+      error: () => {
         this.guardandoArco.set(false);
         this.errorArco.set('Error al guardar el arco.');
+        this.toast.error(esEdicionArco ? 'Error al editar el arco' : 'Error al crear el arco');
       }
     });
   }
 
   eliminarArco(id: number) {
-    if (!confirm('¿Eliminar este arco?')) return;
+    this.confirmarKey.set(null);
     this.eliminandoArcoId.set(id);
     this.arcoService.delete(id).subscribe({
       next: () => {
         this.eliminandoArcoId.set(null);
-        this.arcoService.getByProceso(this.procesoId).subscribe(d => this.arcos.set(d));
+        this.arcos.update(list => list.filter(a => a.id !== id));
+        this.toast.success('Arco eliminado');
       },
-      error: (err) => {
-        console.error('Error eliminando arco:', err);
+      error: () => {
         this.eliminandoArcoId.set(null);
         this.errorArco.set('Error al eliminar el arco.');
+        this.toast.error('Error al eliminar el arco');
       }
     });
   }
@@ -486,38 +527,52 @@ export class DetallesProceso implements OnInit {
     const f = this.rolForm;
     const payload: Omit<RolProceso, 'id'> = { nombre: f.nombre, descripcion: f.descripcion, empresaId: f.empresaId };
 
-    const op = f.id !== undefined
-      ? this.rolProcesoService.update(f.id, payload)
-      : this.rolProcesoService.create(payload);
-
-    op.subscribe({
-      next: () => {
-        this.guardandoRol.set(false);
-        this.cancelarRol();
-        const empresaId = this.proceso()?.empresaId ?? 1;
-        this.rolProcesoService.getByEmpresa(empresaId).subscribe(d => this.roles.set(d));
-      },
-      error: (err) => {
-        console.error('Error guardando rol:', err);
-        this.guardandoRol.set(false);
-        this.errorRol.set('Error al guardar el rol.');
-      }
-    });
+    if (f.id !== undefined) {
+      this.rolProcesoService.update(f.id, payload).subscribe({
+        next: (updated) => {
+          this.guardandoRol.set(false);
+          this.cancelarRol();
+          this.roles.update(list => list.map(r => r.id === updated.id ? updated : r));
+          this.toast.success('Rol actualizado');
+        },
+        error: (err) => {
+          this.guardandoRol.set(false);
+          this.errorRol.set(err?.error?.mensaje ?? 'Error al guardar el rol.');
+          this.toast.error('Error al editar el rol');
+        }
+      });
+    } else {
+      this.rolProcesoService.create(payload).subscribe({
+        next: (created) => {
+          this.guardandoRol.set(false);
+          this.cancelarRol();
+          this.rolesDelProceso.add(created.id);
+          this.roles.update(list => [...list, created]);
+          this.toast.success('Rol creado');
+        },
+        error: (err) => {
+          this.guardandoRol.set(false);
+          this.errorRol.set(err?.error?.mensaje ?? 'Error al crear el rol.');
+          this.toast.error('Error al crear el rol');
+        }
+      });
+    }
   }
 
   eliminarRol(id: number) {
-    if (!confirm('¿Eliminar este rol de proceso?')) return;
+    this.confirmarKey.set(null);
     this.eliminandoRolId.set(id);
     this.rolProcesoService.delete(id).subscribe({
       next: () => {
         this.eliminandoRolId.set(null);
-        const empresaId = this.proceso()?.empresaId ?? 1;
-        this.rolProcesoService.getByEmpresa(empresaId).subscribe(d => this.roles.set(d));
+        this.roles.update(list => list.filter(r => r.id !== id));
+        this.toast.success('Rol eliminado');
       },
       error: (err) => {
-        console.error('Error eliminando rol:', err);
         this.eliminandoRolId.set(null);
-        this.errorRol.set('Error al eliminar el rol.');
+        const mensaje: string = err?.error?.mensaje;
+        this.errorRol.set(mensaje ?? 'Error al eliminar el rol.');
+        this.toast.error(mensaje ?? 'Error al eliminar el rol');
       }
     });
   }

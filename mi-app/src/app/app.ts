@@ -2,13 +2,14 @@ import { Component, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterOutlet, RouterLink, RouterLinkActive, Router, NavigationEnd } from '@angular/router';
 import { CommonModule, AsyncPipe } from '@angular/common';
+import { ToastComponent } from './components/toast/toast.component';
 import { Observable } from 'rxjs';
 import { filter, map, startWith } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, AsyncPipe],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, CommonModule, AsyncPipe, ToastComponent],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })

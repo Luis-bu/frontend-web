@@ -1,9 +1,58 @@
 <div class="detalles-container">
 
-  <!-- Loading -->
-  <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Cargando proceso...</p>
+  <!-- Loading — barra + esqueleto -->
+  <div *ngIf="loading()" class="detalles-loading" aria-busy="true" aria-label="Cargando proceso">
+    <div class="page-loading-bar"></div>
+    <div class="detalles-skeleton">
+
+      <!-- Header skeleton -->
+      <div class="sk-detalles-header">
+        <div class="sk-block" style="width:88px;height:38px;border-radius:12px"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          <div class="sk-block" style="width:42%;height:22px;border-radius:10px"></div>
+          <div style="display:flex;gap:8px">
+            <div class="sk-block sk-pill" style="width:78px;height:20px"></div>
+            <div class="sk-block sk-pill" style="width:66px;height:20px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orbital skeleton -->
+      <div class="sk-orbital-wrap">
+        <div class="sk-orbital-circle"></div>
+      </div>
+
+      <!-- Grid skeleton -->
+      <div class="sk-detalles-grid">
+        <div style="display:flex;flex-direction:column;gap:20px">
+          <div class="sk-detalles-card">
+            <div class="sk-block" style="width:38%;height:15px;border-radius:8px;margin-bottom:18px"></div>
+            <div style="display:flex;flex-direction:column;gap:7px">
+              <div class="sk-block" style="width:100%;height:10px"></div>
+              <div class="sk-block" style="width:80%;height:10px"></div>
+              <div class="sk-block" style="width:58%;height:10px"></div>
+            </div>
+          </div>
+          <div class="sk-detalles-card">
+            <div class="sk-block" style="width:44%;height:15px;border-radius:8px;margin-bottom:16px"></div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="sk-block" style="width:100%;height:38px;border-radius:12px"></div>
+              <div class="sk-block" style="width:100%;height:38px;border-radius:12px"></div>
+            </div>
+          </div>
+        </div>
+        <div class="sk-detalles-card" style="height:240px">
+          <div class="sk-block" style="width:50%;height:15px;border-radius:8px;margin-bottom:20px"></div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="sk-block" style="width:100%;height:12px"></div>
+            <div class="sk-block" style="width:85%;height:12px"></div>
+            <div class="sk-block" style="width:70%;height:12px"></div>
+            <div class="sk-block" style="width:90%;height:12px"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 
   <!-- Error HTTP -->
@@ -182,8 +231,18 @@
             </div>
           </div>
 
-          <div *ngIf="actividades().length === 0 && !mostrarFormActividad()" class="empty-list">
-            Sin actividades registradas.
+          <div *ngIf="actividades().length === 0 && !mostrarFormActividad()" class="section-empty">
+            <div class="section-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/>
+                <rect x="9" y="3" width="6" height="4" rx="1"/>
+                <line x1="9" y1="12" x2="15" y2="12"/>
+                <line x1="9" y1="16" x2="12" y2="16"/>
+              </svg>
+            </div>
+            <h4>Sin actividades</h4>
+            <p>Agrega las tareas o subprocesos que componen este proceso.</p>
+            <button class="btn-empty-create" (click)="nuevaActividad()">+ Agregar actividad</button>
           </div>
 
           <div *ngIf="actividades().length > 0" class="crud-table">
@@ -198,11 +257,16 @@
               </div>
               <div class="crud-row-actions">
                 <button class="btn-edit-sm" (click)="editarActividad(act)">Editar</button>
-                <button class="btn-delete-sm"
-                  (click)="eliminarActividad(act.id)"
-                  [disabled]="eliminandoActividadId() === act.id">
-                  {{ eliminandoActividadId() === act.id ? '...' : 'Eliminar' }}
-                </button>
+                <ng-container *ngIf="confirmarKey() === 'act-' + act.id; else btnEliminarAct">
+                  <span class="confirmar-texto-sm">¿Eliminar?</span>
+                  <button class="btn-si-sm" (click)="eliminarActividad(act.id)" [disabled]="eliminandoActividadId() === act.id">
+                    {{ eliminandoActividadId() === act.id ? '...' : 'Sí' }}
+                  </button>
+                  <button class="btn-no-sm" (click)="confirmarKey.set(null)">No</button>
+                </ng-container>
+                <ng-template #btnEliminarAct>
+                  <button class="btn-delete-sm" (click)="confirmarKey.set('act-' + act.id)" [disabled]="eliminandoActividadId() === act.id">Eliminar</button>
+                </ng-template>
               </div>
             </div>
           </div>
@@ -243,8 +307,15 @@
             </div>
           </div>
 
-          <div *ngIf="gateways().length === 0 && !mostrarFormGateway()" class="empty-list">
-            Sin gateways registrados.
+          <div *ngIf="gateways().length === 0 && !mostrarFormGateway()" class="section-empty">
+            <div class="section-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <polygon points="12 2 22 12 12 22 2 12"/>
+              </svg>
+            </div>
+            <h4>Sin gateways</h4>
+            <p>Los gateways controlan bifurcaciones y uniones en el flujo del proceso.</p>
+            <button class="btn-empty-create" (click)="nuevoGateway()">+ Agregar gateway</button>
           </div>
 
           <div *ngIf="gateways().length > 0" class="crud-table">
@@ -257,11 +328,16 @@
               </div>
               <div class="crud-row-actions">
                 <button class="btn-edit-sm" (click)="editarGateway(gw)">Editar</button>
-                <button class="btn-delete-sm"
-                  (click)="eliminarGateway(gw.id)"
-                  [disabled]="eliminandoGatewayId() === gw.id">
-                  {{ eliminandoGatewayId() === gw.id ? '...' : 'Eliminar' }}
-                </button>
+                <ng-container *ngIf="confirmarKey() === 'gw-' + gw.id; else btnEliminarGw">
+                  <span class="confirmar-texto-sm">¿Eliminar?</span>
+                  <button class="btn-si-sm" (click)="eliminarGateway(gw.id)" [disabled]="eliminandoGatewayId() === gw.id">
+                    {{ eliminandoGatewayId() === gw.id ? '...' : 'Sí' }}
+                  </button>
+                  <button class="btn-no-sm" (click)="confirmarKey.set(null)">No</button>
+                </ng-container>
+                <ng-template #btnEliminarGw>
+                  <button class="btn-delete-sm" (click)="confirmarKey.set('gw-' + gw.id)" [disabled]="eliminandoGatewayId() === gw.id">Eliminar</button>
+                </ng-template>
               </div>
             </div>
           </div>
@@ -292,41 +368,56 @@
                 <label>Actividad origen</label>
                 <select [(ngModel)]="arcoForm!.actividadOrigenId">
                   <option [ngValue]="null">Ninguna</option>
-                  <option *ngFor="let act of actividades()" [ngValue]="act.id">{{ act.nombre }}</option>
+                  <option *ngFor="let act of actividades()" [ngValue]="act.id"
+                    [disabled]="act.id === arcoForm!.actividadDestinoId">{{ act.nombre }}</option>
                 </select>
               </div>
               <div class="form-field">
                 <label>Actividad destino</label>
                 <select [(ngModel)]="arcoForm!.actividadDestinoId">
                   <option [ngValue]="null">Ninguna</option>
-                  <option *ngFor="let act of actividades()" [ngValue]="act.id">{{ act.nombre }}</option>
+                  <option *ngFor="let act of actividades()" [ngValue]="act.id"
+                    [disabled]="act.id === arcoForm!.actividadOrigenId">{{ act.nombre }}</option>
                 </select>
               </div>
               <div class="form-field">
                 <label>Gateway origen</label>
                 <select [(ngModel)]="arcoForm!.gatewayOrigenId">
                   <option [ngValue]="null">Ninguno</option>
-                  <option *ngFor="let gw of gateways()" [ngValue]="gw.id">Gateway #{{ gw.id }} ({{ gw.tipo }})</option>
+                  <option *ngFor="let gw of gateways()" [ngValue]="gw.id"
+                    [disabled]="gw.id === arcoForm!.gatewayDestinoId">Gateway #{{ gw.id }} ({{ gw.tipo }})</option>
                 </select>
               </div>
               <div class="form-field">
                 <label>Gateway destino</label>
                 <select [(ngModel)]="arcoForm!.gatewayDestinoId">
                   <option [ngValue]="null">Ninguno</option>
-                  <option *ngFor="let gw of gateways()" [ngValue]="gw.id">Gateway #{{ gw.id }} ({{ gw.tipo }})</option>
+                  <option *ngFor="let gw of gateways()" [ngValue]="gw.id"
+                    [disabled]="gw.id === arcoForm!.gatewayOrigenId">Gateway #{{ gw.id }} ({{ gw.tipo }})</option>
                 </select>
               </div>
             </div>
+            <div *ngIf="arcoTieneBucle" class="arco-bucle-warn">
+              El origen y el destino no pueden ser el mismo elemento.
+            </div>
             <div class="form-actions">
-              <button class="btn-guardar-sm" (click)="guardarArco()" [disabled]="guardandoArco()">
+              <button class="btn-guardar-sm" (click)="guardarArco()" [disabled]="guardandoArco() || arcoTieneBucle">
                 {{ guardandoArco() ? 'Guardando...' : 'Guardar' }}
               </button>
               <button class="btn-cancel-sm" (click)="cancelarArco()">Cancelar</button>
             </div>
           </div>
 
-          <div *ngIf="arcos().length === 0 && !mostrarFormArco()" class="empty-list">
-            Sin arcos registrados.
+          <div *ngIf="arcos().length === 0 && !mostrarFormArco()" class="section-empty">
+            <div class="section-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M5 12h14"/>
+                <polyline points="12 5 19 12 12 19"/>
+              </svg>
+            </div>
+            <h4>Sin arcos</h4>
+            <p>Los arcos conectan actividades y gateways definiendo el flujo del proceso.</p>
+            <button class="btn-empty-create" (click)="nuevoArco()">+ Agregar arco</button>
           </div>
 
           <div *ngIf="arcos().length > 0" class="crud-table">
@@ -344,11 +435,16 @@
               </div>
               <div class="crud-row-actions">
                 <button class="btn-edit-sm" (click)="editarArco(arco)">Editar</button>
-                <button class="btn-delete-sm"
-                  (click)="eliminarArco(arco.id)"
-                  [disabled]="eliminandoArcoId() === arco.id">
-                  {{ eliminandoArcoId() === arco.id ? '...' : 'Eliminar' }}
-                </button>
+                <ng-container *ngIf="confirmarKey() === 'arco-' + arco.id; else btnEliminarArco">
+                  <span class="confirmar-texto-sm">¿Eliminar?</span>
+                  <button class="btn-si-sm" (click)="eliminarArco(arco.id)" [disabled]="eliminandoArcoId() === arco.id">
+                    {{ eliminandoArcoId() === arco.id ? '...' : 'Sí' }}
+                  </button>
+                  <button class="btn-no-sm" (click)="confirmarKey.set(null)">No</button>
+                </ng-container>
+                <ng-template #btnEliminarArco>
+                  <button class="btn-delete-sm" (click)="confirmarKey.set('arco-' + arco.id)" [disabled]="eliminandoArcoId() === arco.id">Eliminar</button>
+                </ng-template>
               </div>
             </div>
           </div>
@@ -357,7 +453,10 @@
         <!-- ═══════════════ ROLES DE PROCESO ═══════════════ -->
         <div class="card hover-lift animate-fade-up delay-500">
           <div class="card-section-header">
-            <h2>Roles de proceso</h2>
+            <div>
+              <h2>Roles de proceso</h2>
+              <p class="section-subtitle">Compartidos con toda la empresa</p>
+            </div>
             <button class="btn-agregar" (click)="nuevoRol()" *ngIf="!mostrarFormRol()">
               + Agregar
             </button>
@@ -388,25 +487,46 @@
             </div>
           </div>
 
-          <div *ngIf="roles().length === 0 && !mostrarFormRol()" class="empty-list">
-            No hay roles creados para esta empresa. Puedes crear uno con el botón "+ Agregar".
+          <div *ngIf="rolesMostrados().length === 0 && !mostrarFormRol()" class="section-empty">
+            <div class="section-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </div>
+            <h4>Sin roles de proceso</h4>
+            <p>Los roles asignan responsabilidades a las actividades. Se comparten con toda la empresa.</p>
+            <button class="btn-empty-create" (click)="nuevoRol()">+ Agregar rol</button>
           </div>
 
-          <div *ngIf="roles().length > 0" class="crud-table">
-            <div *ngFor="let rol of roles()" class="crud-row">
+          <div *ngIf="rolesMostrados().length > 0" class="crud-table">
+            <div *ngFor="let rol of rolesMostrados()" class="crud-row">
               <div class="crud-row-main">
                 <div class="crud-row-info">
                   <strong>{{ rol.nombre }}</strong>
+                  <span *ngIf="rolesEnUsoPorProceso().has(rol.id)" class="tag tag-en-uso" title="Este rol está asignado a una o más actividades de este proceso">En uso</span>
                 </div>
                 <p class="crud-row-desc">{{ rol.descripcion }}</p>
               </div>
               <div class="crud-row-actions">
                 <button class="btn-edit-sm" (click)="editarRol(rol)">Editar</button>
-                <button class="btn-delete-sm"
-                  (click)="eliminarRol(rol.id)"
-                  [disabled]="eliminandoRolId() === rol.id">
-                  {{ eliminandoRolId() === rol.id ? '...' : 'Eliminar' }}
-                </button>
+                <ng-container *ngIf="rolesEnUsoPorProceso().has(rol.id); else rolNoEnUso">
+                  <button class="btn-delete-sm btn-delete-sm--disabled" disabled title="No se puede eliminar: el rol está asignado a actividades de este proceso">Eliminar</button>
+                </ng-container>
+                <ng-template #rolNoEnUso>
+                  <ng-container *ngIf="confirmarKey() === 'rol-' + rol.id; else btnEliminarRol">
+                    <span class="confirmar-texto-sm">¿Eliminar?</span>
+                    <button class="btn-si-sm" (click)="eliminarRol(rol.id)" [disabled]="eliminandoRolId() === rol.id">
+                      {{ eliminandoRolId() === rol.id ? '...' : 'Sí' }}
+                    </button>
+                    <button class="btn-no-sm" (click)="confirmarKey.set(null)">No</button>
+                  </ng-container>
+                  <ng-template #btnEliminarRol>
+                    <button class="btn-delete-sm" (click)="confirmarKey.set('rol-' + rol.id)" [disabled]="eliminandoRolId() === rol.id">Eliminar</button>
+                  </ng-template>
+                </ng-template>
               </div>
             </div>
           </div>

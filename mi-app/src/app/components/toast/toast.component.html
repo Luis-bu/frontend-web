@@ -1,0 +1,20 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toastService.toasts()"
+    class="toast"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-error]="toast.type === 'error'"
+    [class.leaving]="toast.leaving"
+    (click)="toastService.remove(toast.id)"
+  >
+    <span class="toast-icon">
+      <svg *ngIf="toast.type === 'success'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"/>
+      </svg>
+      <svg *ngIf="toast.type === 'error'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+      </svg>
+    </span>
+    <span class="toast-message">{{ toast.message }}</span>
+  </div>
+</div>

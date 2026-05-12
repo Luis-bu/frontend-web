@@ -6,20 +6,20 @@
 :root {
   --card:                #ffffff;
   --ring:                #f59e0b;
-  --input:               #e5e7eb;
-  --muted:               #f9fafb;
-  --accent:              #fffbeb;
-  --border:              #e5e7eb;
+  --input:               #f0ede8;
+  --muted:               #ebe7e1;
+  --accent:              #fef3c7;
+  --border:              #cfc9c1;
   --radius:              0.75rem;
   --primary:             #f59e0b;
-  --secondary:           #f3f4f6;
-  --background:          #ffffff;
-  --foreground:          #262626;
+  --secondary:           #e5e0d8;
+  --background:          #f3f0eb;
+  --foreground:          #1c1917;
   --destructive:         #ef4444;
-  --muted-foreground:    #4b5563;
-  --accent-foreground:   #92400e;
+  --muted-foreground:    #6b6560;
+  --accent-foreground:   #78350f;
   --primary-foreground:  #000000;
-  --secondary-foreground:#4b5563;
+  --secondary-foreground:#59534e;
   --shadow-blur:         16px;
   --shadow-opacity:      0.10;
   --shadow-offset-x:     0px;
@@ -72,8 +72,8 @@ a { color: inherit; text-decoration: none; }
 .app-shell {
   min-height: calc(100vh - 64px);
   background:
-    radial-gradient(circle at top left, rgba(245, 158, 11, 0.08), transparent 32%),
-    linear-gradient(180deg, #ffffff 0%, #f9fafb 100%);
+    radial-gradient(circle at top left, rgba(245, 158, 11, 0.10), transparent 32%),
+    linear-gradient(180deg, var(--background) 0%, var(--muted) 100%);
 }
 
 .page-container {
@@ -113,7 +113,7 @@ a { color: inherit; text-decoration: none; }
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 20px;
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px rgba(28, 25, 23, 0.06), 0 8px 28px rgba(28, 25, 23, 0.09);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -151,7 +151,7 @@ a { color: inherit; text-decoration: none; }
   color: var(--secondary-foreground);
   border: 1px solid var(--border);
 }
-.btn-secondary:hover { background: #e5e7eb; }
+.btn-secondary:hover { background: var(--muted); }
 
 .btn-ghost {
   background: transparent;
@@ -317,7 +317,7 @@ a { color: inherit; text-decoration: none; }
   display: inline-block;
   width: 36px;
   height: 36px;
-  border: 3px solid #e5e7eb;
+  border: 3px solid var(--border);
   border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.75s linear infinite;

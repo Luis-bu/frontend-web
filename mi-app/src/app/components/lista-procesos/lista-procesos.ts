@@ -1,9 +1,10 @@
-import { Component, computed, ElementRef, HostListener, OnDestroy, OnInit, signal, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, computed, ElementRef, HostListener, OnDestroy, OnInit, PLATFORM_ID, signal, ViewChild, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ProcesoService } from '../../services/proceso.service';
 import { EmpresaService } from '../../services/empresa.service';
+import { ToastService } from '../../services/toast.service';
 import { Proceso } from '../../models/proceso.model';
 import { Empresa } from '../../models/empresa.model';
 
@@ -48,6 +49,7 @@ export class ListaProcesos implements OnInit, OnDestroy {
 
   mostrarEditor = signal(false);
   editProceso: ProcesoForm | null = null;
+  confirmarEliminarId = signal<number | null>(null);
 
   posiciones = signal<Record<number, { x: number; y: number }>>({});
   conexiones = signal<{ from: number; to: number }[]>([]);
@@ -61,11 +63,14 @@ export class ListaProcesos implements OnInit, OnDestroy {
   private readonly onMouseMoveFn = (e: MouseEvent) => this.onBoardMouseMove(e);
   private readonly onMouseUpFn   = ()              => this.onBoardMouseUp();
 
+  private readonly platformId = inject(PLATFORM_ID);
+
   constructor(
     private router: Router,
     private procesoService: ProcesoService,
     private empresaService: EmpresaService,
-    private elRef: ElementRef
+    private elRef: ElementRef,
+    private toast: ToastService
   ) {}
 
   ngOnInit() {
@@ -73,6 +78,7 @@ export class ListaProcesos implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+    if (!isPlatformBrowser(this.platformId)) return;
     document.removeEventListener('mousemove', this.onMouseMoveFn);
     document.removeEventListener('mouseup',   this.onMouseUpFn);
   }
@@ -205,44 +211,57 @@ export class ListaProcesos implements OnInit, OnDestroy {
 
     if (this.editProceso.id !== undefined) {
       this.procesoService.update(this.editProceso.id, payload).subscribe({
-        next: () => {
+        next: (updated) => {
           this.guardando.set(false);
           this.cerrarEditor();
-          this.cargarProcesos();
+          this.procesos.update(list => list.map(p => p.id === updated.id ? updated : p));
+          this.toast.success('Proceso actualizado correctamente');
         },
         error: () => {
           this.guardando.set(false);
-          this.error.set('Error al guardar el proceso.');
+          this.toast.error('Error al guardar el proceso');
         }
       });
     } else {
       this.procesoService.create(payload).subscribe({
-        next: () => {
+        next: (created) => {
           this.guardando.set(false);
           this.cerrarEditor();
-          this.cargarProcesos();
+          this.procesos.update(list => [...list, created]);
+          this.toast.success('Proceso creado correctamente');
         },
         error: () => {
           this.guardando.set(false);
-          this.error.set('Error al crear el proceso.');
+          this.toast.error('Error al crear el proceso');
         }
       });
     }
   }
 
+  pedirConfirmacion(proceso: Proceso, event: MouseEvent) {
+    event.stopPropagation();
+    this.confirmarEliminarId.set(proceso.id);
+  }
+
+  cancelarEliminar(event: MouseEvent) {
+    event.stopPropagation();
+    this.confirmarEliminarId.set(null);
+  }
+
   eliminarProceso(proceso: Proceso, event: MouseEvent) {
     event.stopPropagation();
-    if (!confirm(`¿Eliminar el proceso "${proceso.nombre}"?`)) return;
-
-    this.eliminandoId.set(proceso.id);
-    this.procesoService.delete(proceso.id).subscribe({
+    const id = proceso.id;
+    this.confirmarEliminarId.set(null);
+    this.eliminandoId.set(id);
+    this.procesoService.delete(id).subscribe({
       next: () => {
         this.eliminandoId.set(null);
-        this.cargarProcesos();
+        this.procesos.update(list => list.filter(p => p.id !== id));
+        this.toast.success('Proceso eliminado');
       },
       error: () => {
         this.eliminandoId.set(null);
-        this.error.set('Error al eliminar el proceso.');
+        this.toast.error('Error al eliminar el proceso');
       }
     });
   }
@@ -287,6 +306,7 @@ export class ListaProcesos implements OnInit, OnDestroy {
   }
 
   onCardMouseDown(event: MouseEvent, proceso: Proceso) {
+    if (!isPlatformBrowser(this.platformId)) return;
     if (event.button !== 0) return;
     if ((event.target as HTMLElement).closest('button')) return;
     event.preventDefault();
@@ -312,6 +332,7 @@ export class ListaProcesos implements OnInit, OnDestroy {
   private onBoardMouseUp() {
     this.draggingId = null;
     this.boardRect  = null;
+    if (!isPlatformBrowser(this.platformId)) return;
     document.removeEventListener('mousemove', this.onMouseMoveFn);
     document.removeEventListener('mouseup',   this.onMouseUpFn);
   }
