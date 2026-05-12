@@ -13,4 +13,20 @@ export class GatewayService {
   getByProceso(procesoId: number): Observable<Gateway[]> {
     return this.http.get<Gateway[]>(`${this.url}/proceso/${procesoId}`);
   }
+
+  getById(id: number): Observable<Gateway> {
+    return this.http.get<Gateway>(`${this.url}/${id}`);
+  }
+
+  create(gateway: Omit<Gateway, 'id'>): Observable<Gateway> {
+    return this.http.post<Gateway>(this.url, gateway);
+  }
+
+  update(id: number, gateway: Omit<Gateway, 'id'>): Observable<Gateway> {
+    return this.http.put<Gateway>(`${this.url}/${id}`, gateway);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}`);
+  }
 }

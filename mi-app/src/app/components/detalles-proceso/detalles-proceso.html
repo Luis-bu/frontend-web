@@ -1,36 +1,34 @@
 <div class="detalles-container">
+
   <!-- Loading -->
   <div *ngIf="loading()" class="loading-state">
     <div class="spinner"></div>
     <p>Cargando proceso...</p>
   </div>
 
-  <!-- Error -->
+  <!-- Error HTTP -->
   <div *ngIf="!loading() && error()" class="error-state">
     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>
     <h2>Error al cargar</h2>
     <p>{{ error() }}</p>
     <button class="btn-volver-error" (click)="volver()">Volver a procesos</button>
   </div>
 
-  <!-- Proceso no encontrado -->
+  <!-- No encontrado -->
   <div *ngIf="!loading() && !error() && !proceso()" class="error-state">
     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="12" y1="8" x2="12" y2="12"/>
-      <line x1="12" y1="16" x2="12.01" y2="16"/>
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
     </svg>
     <h2>Proceso no encontrado</h2>
     <p>El proceso que buscas no existe.</p>
     <button class="btn-volver-error" (click)="volver()">Volver a procesos</button>
   </div>
 
-  <!-- Detalles -->
+  <!-- Contenido principal -->
   <div *ngIf="!loading() && proceso()" class="detalles-content">
+
     <!-- Header -->
     <div class="detalles-header">
       <button class="btn-volver" (click)="volver()">
@@ -39,7 +37,6 @@
         </svg>
         Volver
       </button>
-
       <div class="titulo-header">
         <h1>{{ proceso()!.nombre }}</h1>
         <div class="badges">
@@ -49,64 +46,305 @@
       </div>
     </div>
 
-    <!-- Main Content -->
+    <!-- Grid principal -->
     <div class="content-grid">
-      <!-- Left Column -->
+
+      <!-- Columna izquierda -->
       <div class="left-column">
-        <!-- Description -->
+
+        <!-- Descripción -->
         <div class="card">
           <h2>Descripción</h2>
-          <p>{{ proceso()!.descripcion }}</p>
+          <p class="descripcion-text">{{ proceso()!.descripcion }}</p>
         </div>
 
-        <!-- Actividades -->
+        <!-- Nota de alcance -->
+        <div class="alcance-note">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          Funcionalidades avanzadas como pools, lanes y mensajería quedan fuera del alcance de esta entrega frontend.
+        </div>
+
+        <!-- ═══════════════ ACTIVIDADES ═══════════════ -->
         <div class="card">
-          <h2>Actividades</h2>
-          <div *ngIf="actividades().length === 0" class="empty-list">Sin actividades registradas.</div>
-          <ul class="item-list" *ngIf="actividades().length > 0">
-            <li *ngFor="let act of actividades()" class="item-row">
-              <div class="item-header">
-                <strong>{{ act.nombre }}</strong>
-                <span class="tag">{{ act.tipo }}</span>
+          <div class="card-section-header">
+            <h2>Actividades</h2>
+            <button class="btn-agregar" (click)="nuevaActividad()" *ngIf="!mostrarFormActividad()">
+              + Agregar
+            </button>
+          </div>
+
+          <div *ngIf="errorActividad()" class="section-error">
+            {{ errorActividad() }}
+            <button (click)="errorActividad.set(null)">✕</button>
+          </div>
+
+          <div *ngIf="mostrarFormActividad() && actividadForm" class="crud-form">
+            <div class="crud-form-title">{{ actividadForm!.id !== undefined ? 'Editar actividad' : 'Nueva actividad' }}</div>
+            <div class="crud-form-grid">
+              <div class="form-field">
+                <label>Nombre</label>
+                <input [(ngModel)]="actividadForm!.nombre" placeholder="Nombre de la actividad" />
               </div>
-              <p class="item-desc">{{ act.descripcion }}</p>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Gateways -->
-        <div class="card">
-          <h2>Gateways</h2>
-          <div *ngIf="gateways().length === 0" class="empty-list">Sin gateways registrados.</div>
-          <ul class="item-list" *ngIf="gateways().length > 0">
-            <li *ngFor="let gw of gateways()" class="item-row">
-              <span class="tag">{{ gw.tipo }}</span>
-              <span class="item-id">ID: {{ gw.id }}</span>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Arcos -->
-        <div class="card">
-          <h2>Arcos</h2>
-          <div *ngIf="arcos().length === 0" class="empty-list">Sin arcos registrados.</div>
-          <ul class="item-list" *ngIf="arcos().length > 0">
-            <li *ngFor="let arco of arcos()" class="item-row">
-              <strong>{{ arco.etiqueta || ('Arco #' + arco.id) }}</strong>
-              <div class="arco-detail">
-                <span *ngIf="arco.actividadOrigenId">Act. origen: {{ arco.actividadOrigenId }}</span>
-                <span *ngIf="arco.actividadDestinoId">Act. destino: {{ arco.actividadDestinoId }}</span>
-                <span *ngIf="arco.gatewayOrigenId">GW origen: {{ arco.gatewayOrigenId }}</span>
-                <span *ngIf="arco.gatewayDestinoId">GW destino: {{ arco.gatewayDestinoId }}</span>
+              <div class="form-field">
+                <label>Tipo</label>
+                <input [(ngModel)]="actividadForm!.tipo" placeholder="Ej: TAREA, SUBPROCESO" />
               </div>
-            </li>
-          </ul>
-        </div>
-      </div>
+              <div class="form-field form-field-full">
+                <label>Descripción</label>
+                <textarea rows="2" [(ngModel)]="actividadForm!.descripcion" placeholder="Descripción de la actividad"></textarea>
+              </div>
+              <div class="form-field form-field-full">
+                <label>Rol de proceso</label>
+                <select [(ngModel)]="actividadForm!.rolProcesoId">
+                  <option [ngValue]="null">Sin rol asignado</option>
+                  <option *ngFor="let rol of roles()" [ngValue]="rol.id">{{ rol.nombre }}</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-guardar-sm" (click)="guardarActividad()" [disabled]="guardandoActividad()">
+                {{ guardandoActividad() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button class="btn-cancel-sm" (click)="cancelarActividad()">Cancelar</button>
+            </div>
+          </div>
 
-      <!-- Right Column -->
+          <div *ngIf="actividades().length === 0 && !mostrarFormActividad()" class="empty-list">
+            Sin actividades registradas.
+          </div>
+
+          <div *ngIf="actividades().length > 0" class="crud-table">
+            <div *ngFor="let act of actividades()" class="crud-row">
+              <div class="crud-row-main">
+                <div class="crud-row-info">
+                  <strong>{{ act.nombre }}</strong>
+                  <span class="tag">{{ act.tipo }}</span>
+                  <span class="tag rol-tag">{{ getRolNombre(act.rolProcesoId) }}</span>
+                </div>
+                <p class="crud-row-desc">{{ act.descripcion }}</p>
+              </div>
+              <div class="crud-row-actions">
+                <button class="btn-edit-sm" (click)="editarActividad(act)">Editar</button>
+                <button class="btn-delete-sm"
+                  (click)="eliminarActividad(act.id)"
+                  [disabled]="eliminandoActividadId() === act.id">
+                  {{ eliminandoActividadId() === act.id ? '...' : 'Eliminar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════ GATEWAYS ═══════════════ -->
+        <div class="card">
+          <div class="card-section-header">
+            <h2>Gateways</h2>
+            <button class="btn-agregar" (click)="nuevoGateway()" *ngIf="!mostrarFormGateway()">
+              + Agregar
+            </button>
+          </div>
+
+          <div *ngIf="errorGateway()" class="section-error">
+            {{ errorGateway() }}
+            <button (click)="errorGateway.set(null)">✕</button>
+          </div>
+
+          <div *ngIf="mostrarFormGateway() && gatewayForm" class="crud-form">
+            <div class="crud-form-title">{{ gatewayForm!.id !== undefined ? 'Editar gateway' : 'Nuevo gateway' }}</div>
+            <div class="crud-form-grid">
+              <div class="form-field form-field-full">
+                <label>Tipo</label>
+                <select [(ngModel)]="gatewayForm!.tipo">
+                  <option value="">Selecciona un tipo</option>
+                  <option value="EXCLUSIVO">Exclusivo (XOR)</option>
+                  <option value="INCLUSIVO">Inclusivo (OR)</option>
+                  <option value="PARALELO">Paralelo (AND)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-guardar-sm" (click)="guardarGateway()" [disabled]="guardandoGateway()">
+                {{ guardandoGateway() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button class="btn-cancel-sm" (click)="cancelarGateway()">Cancelar</button>
+            </div>
+          </div>
+
+          <div *ngIf="gateways().length === 0 && !mostrarFormGateway()" class="empty-list">
+            Sin gateways registrados.
+          </div>
+
+          <div *ngIf="gateways().length > 0" class="crud-table">
+            <div *ngFor="let gw of gateways()" class="crud-row">
+              <div class="crud-row-main">
+                <div class="crud-row-info">
+                  <strong>Gateway #{{ gw.id }}</strong>
+                  <span class="tag">{{ gw.tipo }}</span>
+                </div>
+              </div>
+              <div class="crud-row-actions">
+                <button class="btn-edit-sm" (click)="editarGateway(gw)">Editar</button>
+                <button class="btn-delete-sm"
+                  (click)="eliminarGateway(gw.id)"
+                  [disabled]="eliminandoGatewayId() === gw.id">
+                  {{ eliminandoGatewayId() === gw.id ? '...' : 'Eliminar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════ ARCOS ═══════════════ -->
+        <div class="card">
+          <div class="card-section-header">
+            <h2>Arcos</h2>
+            <button class="btn-agregar" (click)="nuevoArco()" *ngIf="!mostrarFormArco()">
+              + Agregar
+            </button>
+          </div>
+
+          <div *ngIf="errorArco()" class="section-error">
+            {{ errorArco() }}
+            <button (click)="errorArco.set(null)">✕</button>
+          </div>
+
+          <div *ngIf="mostrarFormArco() && arcoForm" class="crud-form">
+            <div class="crud-form-title">{{ arcoForm!.id !== undefined ? 'Editar arco' : 'Nuevo arco' }}</div>
+            <div class="crud-form-grid">
+              <div class="form-field form-field-full">
+                <label>Etiqueta</label>
+                <input [(ngModel)]="arcoForm!.etiqueta" placeholder="Etiqueta del arco" />
+              </div>
+              <div class="form-field">
+                <label>Actividad origen</label>
+                <select [(ngModel)]="arcoForm!.actividadOrigenId">
+                  <option [ngValue]="null">Ninguna</option>
+                  <option *ngFor="let act of actividades()" [ngValue]="act.id">{{ act.nombre }}</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Actividad destino</label>
+                <select [(ngModel)]="arcoForm!.actividadDestinoId">
+                  <option [ngValue]="null">Ninguna</option>
+                  <option *ngFor="let act of actividades()" [ngValue]="act.id">{{ act.nombre }}</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Gateway origen</label>
+                <select [(ngModel)]="arcoForm!.gatewayOrigenId">
+                  <option [ngValue]="null">Ninguno</option>
+                  <option *ngFor="let gw of gateways()" [ngValue]="gw.id">Gateway #{{ gw.id }} ({{ gw.tipo }})</option>
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Gateway destino</label>
+                <select [(ngModel)]="arcoForm!.gatewayDestinoId">
+                  <option [ngValue]="null">Ninguno</option>
+                  <option *ngFor="let gw of gateways()" [ngValue]="gw.id">Gateway #{{ gw.id }} ({{ gw.tipo }})</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-guardar-sm" (click)="guardarArco()" [disabled]="guardandoArco()">
+                {{ guardandoArco() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button class="btn-cancel-sm" (click)="cancelarArco()">Cancelar</button>
+            </div>
+          </div>
+
+          <div *ngIf="arcos().length === 0 && !mostrarFormArco()" class="empty-list">
+            Sin arcos registrados.
+          </div>
+
+          <div *ngIf="arcos().length > 0" class="crud-table">
+            <div *ngFor="let arco of arcos()" class="crud-row">
+              <div class="crud-row-main">
+                <div class="crud-row-info">
+                  <strong>{{ arco.etiqueta || ('Arco #' + arco.id) }}</strong>
+                </div>
+                <div class="arco-detail">
+                  <span *ngIf="arco.actividadOrigenId">Act. origen: #{{ arco.actividadOrigenId }}</span>
+                  <span *ngIf="arco.actividadDestinoId">Act. destino: #{{ arco.actividadDestinoId }}</span>
+                  <span *ngIf="arco.gatewayOrigenId">GW origen: #{{ arco.gatewayOrigenId }}</span>
+                  <span *ngIf="arco.gatewayDestinoId">GW destino: #{{ arco.gatewayDestinoId }}</span>
+                </div>
+              </div>
+              <div class="crud-row-actions">
+                <button class="btn-edit-sm" (click)="editarArco(arco)">Editar</button>
+                <button class="btn-delete-sm"
+                  (click)="eliminarArco(arco.id)"
+                  [disabled]="eliminandoArcoId() === arco.id">
+                  {{ eliminandoArcoId() === arco.id ? '...' : 'Eliminar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══════════════ ROLES DE PROCESO ═══════════════ -->
+        <div class="card">
+          <div class="card-section-header">
+            <h2>Roles de proceso</h2>
+            <button class="btn-agregar" (click)="nuevoRol()" *ngIf="!mostrarFormRol()">
+              + Agregar
+            </button>
+          </div>
+
+          <div *ngIf="errorRol()" class="section-error">
+            {{ errorRol() }}
+            <button (click)="errorRol.set(null)">✕</button>
+          </div>
+
+          <div *ngIf="mostrarFormRol() && rolForm" class="crud-form">
+            <div class="crud-form-title">{{ rolForm!.id !== undefined ? 'Editar rol' : 'Nuevo rol' }}</div>
+            <div class="crud-form-grid">
+              <div class="form-field">
+                <label>Nombre</label>
+                <input [(ngModel)]="rolForm!.nombre" placeholder="Nombre del rol" />
+              </div>
+              <div class="form-field">
+                <label>Descripción</label>
+                <input [(ngModel)]="rolForm!.descripcion" placeholder="Descripción del rol" />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn-guardar-sm" (click)="guardarRol()" [disabled]="guardandoRol()">
+                {{ guardandoRol() ? 'Guardando...' : 'Guardar' }}
+              </button>
+              <button class="btn-cancel-sm" (click)="cancelarRol()">Cancelar</button>
+            </div>
+          </div>
+
+          <div *ngIf="roles().length === 0 && !mostrarFormRol()" class="empty-list">
+            Sin roles registrados para esta empresa.
+          </div>
+
+          <div *ngIf="roles().length > 0" class="crud-table">
+            <div *ngFor="let rol of roles()" class="crud-row">
+              <div class="crud-row-main">
+                <div class="crud-row-info">
+                  <strong>{{ rol.nombre }}</strong>
+                </div>
+                <p class="crud-row-desc">{{ rol.descripcion }}</p>
+              </div>
+              <div class="crud-row-actions">
+                <button class="btn-edit-sm" (click)="editarRol(rol)">Editar</button>
+                <button class="btn-delete-sm"
+                  (click)="eliminarRol(rol.id)"
+                  [disabled]="eliminandoRolId() === rol.id">
+                  {{ eliminandoRolId() === rol.id ? '...' : 'Eliminar' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /left-column -->
+
+      <!-- Columna derecha -->
       <div class="right-column">
-        <!-- Info Card -->
         <div class="card info-card">
           <h2>Información</h2>
           <div class="info-item">
@@ -133,9 +371,12 @@
             <span class="info-label">Arcos</span>
             <span class="info-value">{{ arcos().length }}</span>
           </div>
+          <div class="info-item">
+            <span class="info-label">Roles</span>
+            <span class="info-value">{{ roles().length }}</span>
+          </div>
         </div>
 
-        <!-- Actions Card -->
         <div class="card actions-card">
           <h2>Acciones</h2>
           <button class="action-btn secondary" (click)="volver()">
@@ -146,6 +387,7 @@
           </button>
         </div>
       </div>
-    </div>
-  </div>
+
+    </div><!-- /content-grid -->
+  </div><!-- /detalles-content -->
 </div>

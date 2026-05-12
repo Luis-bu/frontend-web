@@ -13,4 +13,20 @@ export class RolProcesoService {
   getByEmpresa(empresaId: number): Observable<RolProceso[]> {
     return this.http.get<RolProceso[]>(`${this.url}/empresa/${empresaId}`);
   }
+
+  getById(id: number): Observable<RolProceso> {
+    return this.http.get<RolProceso>(`${this.url}/${id}`);
+  }
+
+  create(rol: Omit<RolProceso, 'id'>): Observable<RolProceso> {
+    return this.http.post<RolProceso>(this.url, rol);
+  }
+
+  update(id: number, rol: Omit<RolProceso, 'id'>): Observable<RolProceso> {
+    return this.http.put<RolProceso>(`${this.url}/${id}`, rol);
+  }
+
+  delete(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.url}/${id}`);
+  }
 }
