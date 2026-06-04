@@ -6,7 +6,7 @@
       <h1>Empresas</h1>
       <p>Gestiona las empresas registradas en el sistema.</p>
     </div>
-    <button class="btn-nueva" (click)="nuevaEmpresa()" [disabled]="mostrarEditor()">
+    <button *ngIf="!soloLectura()" class="btn-nueva" (click)="nuevaEmpresa()" [disabled]="mostrarEditor()">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
         <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
       </svg>
@@ -73,8 +73,8 @@
       </svg>
     </div>
     <h3>Sin empresas registradas</h3>
-    <p>Crea la primera empresa para comenzar a gestionar procesos.</p>
-    <button class="btn-nueva" (click)="nuevaEmpresa()">+ Nueva empresa</button>
+    <p>{{ soloLectura() ? 'No hay empresas registradas en el sistema.' : 'Crea la primera empresa para comenzar a gestionar procesos.' }}</p>
+    <button *ngIf="!soloLectura()" class="btn-nueva" (click)="nuevaEmpresa()">+ Nueva empresa</button>
   </div>
 
   <!-- Lista de empresas -->
@@ -107,7 +107,7 @@
       </div>
 
       <!-- Acciones -->
-      <div class="empresa-actions">
+      <div class="empresa-actions" *ngIf="!soloLectura()">
         <button class="btn-edit" (click)="editarEmpresa(empresa)" [disabled]="eliminandoId() === empresa.id">
           Editar
         </button>

@@ -14,6 +14,7 @@ import { Actividad } from '../../models/actividad.model';
 import { Gateway } from '../../models/gateway.model';
 import { Arco } from '../../models/arco.model';
 import { RolProceso } from '../../models/rol-proceso.model';
+import { AuthService } from '../../services/auth.service';
 
 interface ActividadForm {
   id?: number;
@@ -189,6 +190,8 @@ export class DetallesProceso implements OnInit {
     ).length;
   }
 
+  soloLectura = computed(() => this.authService.getRol() === 'SOLO_LECTURA');
+
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -197,7 +200,8 @@ export class DetallesProceso implements OnInit {
     private gatewayService: GatewayService,
     private arcoService: ArcoService,
     private rolProcesoService: RolProcesoService,
-    private toast: ToastService
+    private toast: ToastService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { ProcesoService } from '../../services/proceso.service';
 import { EmpresaService } from '../../services/empresa.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService } from '../../services/auth.service';
 import { Proceso } from '../../models/proceso.model';
 import { Empresa } from '../../models/empresa.model';
 
@@ -35,6 +36,8 @@ export class ListaProcesos implements OnInit, OnDestroy {
     this.empresas().find(e => e.id === this.empresaSeleccionadaId()) ?? null
   );
   empresaDropdownAbierto = signal(false);
+  esAdmin       = computed(() => this.authService.getRol() === 'ADMINISTRADOR');
+  soloLectura   = computed(() => this.authService.getRol() === 'SOLO_LECTURA');
 
   // ── Procesos ─────────────────────────────────────────────────────────────
   procesos     = signal<Proceso[]>([]);
@@ -66,11 +69,12 @@ export class ListaProcesos implements OnInit, OnDestroy {
   private readonly platformId = inject(PLATFORM_ID);
 
   constructor(
-    private router: Router,
+    public router: Router,
     private procesoService: ProcesoService,
     private empresaService: EmpresaService,
     private elRef: ElementRef,
-    private toast: ToastService
+    private toast: ToastService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {
@@ -108,7 +112,10 @@ export class ListaProcesos implements OnInit, OnDestroy {
           return;
         }
 
-        const preferida = data.find(e => e.id === 1);
+        const empresaIdAuth = this.authService.getEmpresaId();
+        const preferida = empresaIdAuth
+          ? data.find(e => e.id === empresaIdAuth)
+          : data.find(e => e.id === 1);
         this.empresaSeleccionadaId.set(preferida ? preferida.id : data[0].id);
         this.cargarProcesos();
       },

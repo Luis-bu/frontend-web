@@ -1,0 +1,127 @@
+<div class="usuarios-container">
+
+  <!-- Header -->
+  <div class="usuarios-header animate-fade-down">
+    <div class="header-title">
+      <h1>Usuarios</h1>
+      <p>Gestiona los usuarios de tu empresa.</p>
+    </div>
+    <button *ngIf="!soloLectura()" class="btn-nueva" (click)="nuevoUsuario()" [disabled]="mostrarEditor()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Nuevo usuario
+    </button>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error()" class="error-banner animate-fade-scale">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+    </svg>
+    {{ error() }}
+    <button (click)="error.set(null)">✕</button>
+  </div>
+
+  <!-- Formulario -->
+  <div *ngIf="mostrarEditor() && editUsuario" class="editor-card card animate-fade-scale">
+    <h2 class="editor-title">{{ editUsuario!.id !== undefined ? 'Editar usuario' : 'Nuevo usuario' }}</h2>
+    <div class="editor-grid">
+      <div class="form-field">
+        <label>Nombre</label>
+        <input [(ngModel)]="editUsuario!.nombre" placeholder="Nombre completo" />
+      </div>
+      <div class="form-field">
+        <label>Correo</label>
+        <input [(ngModel)]="editUsuario!.correo" placeholder="correo@empresa.com" type="email" />
+      </div>
+      <div class="form-field" *ngIf="editUsuario!.id === undefined">
+        <label>Contraseña</label>
+        <input [(ngModel)]="editUsuario!.contrasena" placeholder="Contraseña inicial" type="password" />
+      </div>
+      <div class="form-field">
+        <label>Rol</label>
+        <select [(ngModel)]="editUsuario!.rol">
+          <option *ngFor="let rol of roles" [value]="rol">{{ rol }}</option>
+        </select>
+      </div>
+    </div>
+    <div class="editor-actions">
+      <button class="btn-guardar" (click)="guardarUsuario()" [disabled]="guardando() || !formularioValido()">
+        {{ guardando() ? 'Guardando...' : 'Guardar' }}
+      </button>
+      <button class="btn-cancelar" (click)="cerrarEditor()">Cancelar</button>
+    </div>
+  </div>
+
+  <!-- Skeleton -->
+  <div *ngIf="cargando()" class="skeleton-list">
+    <div class="sk-row" *ngFor="let i of [1,2,3]">
+      <div class="sk-icon"></div>
+      <div class="sk-body">
+        <div class="sk-block" style="width:34%;height:14px;border-radius:8px"></div>
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <div class="sk-block" style="width:26%;height:11px;border-radius:6px"></div>
+          <div class="sk-block" style="width:18%;height:11px;border-radius:6px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div *ngIf="!cargando() && !error() && usuarios().length === 0 && !mostrarEditor()" class="empty-state animate-fade-scale">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+    </div>
+    <h3>Sin usuarios registrados</h3>
+    <p>{{ soloLectura() ? 'No hay usuarios en esta empresa.' : 'Crea el primer usuario para tu empresa.' }}</p>
+    <button *ngIf="!soloLectura()" class="btn-nueva" (click)="nuevoUsuario()">+ Nuevo usuario</button>
+  </div>
+
+  <!-- Lista -->
+  <div *ngIf="!cargando() && usuarios().length > 0" class="usuarios-list">
+    <div *ngFor="let usuario of usuarios()" class="usuario-card card animate-fade-up">
+
+      <div class="usuario-info">
+        <div class="usuario-avatar">{{ usuario.nombre.charAt(0).toUpperCase() }}</div>
+        <div class="usuario-datos">
+          <span class="usuario-nombre">{{ usuario.nombre }}</span>
+          <div class="usuario-meta">
+            <span class="meta-item">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                <polyline points="22,6 12,13 2,6"/>
+              </svg>
+              {{ usuario.correo }}
+            </span>
+            <span class="rol-badge" [ngClass]="getRolColor(usuario.rol)">{{ usuario.rol }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="usuario-actions" *ngIf="!soloLectura()">
+        <button class="btn-edit" (click)="editarUsuario(usuario)" [disabled]="eliminandoId() === usuario.id">
+          Editar
+        </button>
+        <ng-container *ngIf="confirmarEliminarId() === usuario.id; else btnEliminar">
+          <span class="confirmar-texto">¿Eliminar?</span>
+          <button class="btn-si" (click)="eliminarUsuario(usuario)" [disabled]="eliminandoId() === usuario.id">
+            {{ eliminandoId() === usuario.id ? '...' : 'Sí' }}
+          </button>
+          <button class="btn-no" (click)="cancelarEliminar()">No</button>
+        </ng-container>
+        <ng-template #btnEliminar>
+          <button class="btn-delete" (click)="pedirConfirmacion(usuario)" [disabled]="eliminandoId() === usuario.id">
+            Eliminar
+          </button>
+        </ng-template>
+      </div>
+
+    </div>
+  </div>
+
+</div>

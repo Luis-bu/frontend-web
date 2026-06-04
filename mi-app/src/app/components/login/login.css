@@ -66,6 +66,51 @@
   margin: 0 0 12px;
 }
 
+/* ── Auth tabs ───────────────────────────────────────────────────────────── */
+.auth-tabs {
+  display: flex;
+  gap: 6px;
+  background: var(--muted);
+  border-radius: 16px;
+  padding: 5px;
+  margin-bottom: 20px;
+}
+
+.auth-tab {
+  flex: 1;
+  padding: 9px 16px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+}
+
+.auth-tab:hover:not(.auth-tab-active) {
+  color: var(--foreground);
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.auth-tab-active {
+  background: var(--card);
+  color: #d97706;
+  font-weight: 800;
+  border-color: #f59e0b;
+  box-shadow:
+    0 0 0 1px rgba(245,158,11,0.25),
+    0 0 14px rgba(245,158,11,0.30),
+    0 4px 12px rgba(0,0,0,0.08);
+  transform: translateY(-1px);
+}
+
+.form-input select {
+  appearance: none;
+}
+
 /* ── Form card ────────────────────────────────────────────────────────────── */
 .login-card {
   display: flex;

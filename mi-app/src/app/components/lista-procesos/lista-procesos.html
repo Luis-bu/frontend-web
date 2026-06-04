@@ -12,16 +12,27 @@
       </div>
       <p>Monitorea, edita y ordena tus procesos con un tablero drag &amp; drop.</p>
     </div>
-    <button
-      class="btn-nuevo-proceso"
-      (click)="nuevoProceso()"
-      [disabled]="empresaSeleccionadaId() === null || cargandoEmpresas()"
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-      </svg>
-      Nuevo Proceso
-    </button>
+    <div class="header-actions">
+      <button class="btn-usuarios" (click)="router.navigate(['/usuarios'])">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+        Usuarios
+      </button>
+      <button
+        *ngIf="!soloLectura()"
+        class="btn-nuevo-proceso"
+        (click)="nuevoProceso()"
+        [disabled]="empresaSeleccionadaId() === null || cargandoEmpresas()"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Nuevo Proceso
+      </button>
+    </div>
   </div>
 
   <!-- ── Error banner ───────────────────────────────────────────────────── -->
@@ -52,8 +63,9 @@
           class="company-select-trigger"
           type="button"
           (click)="toggleEmpresaDropdown()"
-          [attr.aria-expanded]="empresaDropdownAbierto()"
-          aria-haspopup="listbox"
+          [disabled]="!esAdmin()"
+          [attr.aria-expanded]="esAdmin() ? empresaDropdownAbierto() : null"
+          [attr.aria-haspopup]="esAdmin() ? 'listbox' : null"
         >
           <!-- Icono edificio -->
           <span class="company-select-icon">
@@ -69,8 +81,8 @@
             <small>NIT&nbsp;{{ empresaSeleccionada()?.nit }}</small>
           </span>
 
-          <!-- Chevron animado -->
-          <span class="company-select-chevron" aria-hidden="true">
+          <!-- Chevron animado: solo visible para admin -->
+          <span class="company-select-chevron" aria-hidden="true" *ngIf="esAdmin()">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <polyline points="6 9 12 15 18 9"/>
             </svg>
@@ -230,24 +242,26 @@
             <p class="proceso-descripcion">{{ proceso.descripcion }}</p>
 
             <div class="proceso-footer">
-              <button class="btn-edit" (click)="editarProcesoItem(proceso, $event)">Editar</button>
+              <ng-container *ngIf="!soloLectura()">
+                <button class="btn-edit" (click)="editarProcesoItem(proceso, $event)">Editar</button>
 
-              <ng-container *ngIf="confirmarEliminarId() === proceso.id; else btnEliminar">
-                <span class="confirmar-texto">¿Eliminar?</span>
-                <button
-                  class="btn-delete-si"
-                  (click)="eliminarProceso(proceso, $event)"
-                  [disabled]="eliminandoId() === proceso.id"
-                >{{ eliminandoId() === proceso.id ? '...' : 'Sí' }}</button>
-                <button class="btn-delete-no" (click)="cancelarEliminar($event)">No</button>
+                <ng-container *ngIf="confirmarEliminarId() === proceso.id; else btnEliminar">
+                  <span class="confirmar-texto">¿Eliminar?</span>
+                  <button
+                    class="btn-delete-si"
+                    (click)="eliminarProceso(proceso, $event)"
+                    [disabled]="eliminandoId() === proceso.id"
+                  >{{ eliminandoId() === proceso.id ? '...' : 'Sí' }}</button>
+                  <button class="btn-delete-no" (click)="cancelarEliminar($event)">No</button>
+                </ng-container>
+                <ng-template #btnEliminar>
+                  <button
+                    class="btn-delete"
+                    (click)="pedirConfirmacion(proceso, $event)"
+                    [disabled]="eliminandoId() === proceso.id"
+                  >Eliminar</button>
+                </ng-template>
               </ng-container>
-              <ng-template #btnEliminar>
-                <button
-                  class="btn-delete"
-                  (click)="pedirConfirmacion(proceso, $event)"
-                  [disabled]="eliminandoId() === proceso.id"
-                >Eliminar</button>
-              </ng-template>
 
               <span class="proceso-footer-text">Clic para ver detalles</span>
             </div>
@@ -327,8 +341,8 @@
             </svg>
           </div>
           <h3>Sin procesos registrados</h3>
-          <p>Esta empresa aún no tiene procesos. Crea el primero para comenzar a gestionar tu flujo de trabajo.</p>
-          <button class="no-procesos-action" (click)="nuevoProceso()">
+          <p>Esta empresa aún no tiene procesos.<ng-container *ngIf="!soloLectura()"> Crea el primero para comenzar a gestionar tu flujo de trabajo.</ng-container></p>
+          <button *ngIf="!soloLectura()" class="no-procesos-action" (click)="nuevoProceso()">
             <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>

@@ -22,12 +22,20 @@
           </svg>
           Empresas
         </a>
+        <a routerLink="/usuarios" routerLinkActive="nav-active" class="nav-link">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+            <circle cx="9" cy="7" r="4"/>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+          Usuarios
+        </a>
       </nav>
 
       <div class="header-right">
         <div class="user-chip">
-          <div class="user-avatar">L</div>
-          <span class="user-label">Luis Buema</span>
+          <div class="user-avatar">{{ authService.getCurrentUser()?.nombre?.charAt(0)?.toUpperCase() ?? 'U' }}</div>
+          <span class="user-label">{{ authService.getCurrentUser()?.nombre ?? 'Usuario' }}</span>
         </div>
         <button
           class="theme-toggle"

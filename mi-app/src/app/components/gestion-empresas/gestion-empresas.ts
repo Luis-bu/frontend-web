@@ -1,8 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EmpresaService } from '../../services/empresa.service';
 import { ToastService } from '../../services/toast.service';
+import { AuthService } from '../../services/auth.service';
 import { Empresa } from '../../models/empresa.model';
 
 interface EmpresaForm {
@@ -29,9 +30,12 @@ export class GestionEmpresas implements OnInit {
   mostrarEditor     = signal(false);
   editEmpresa: EmpresaForm | null = null;
 
+  soloLectura = computed(() => this.authService.getRol() === 'SOLO_LECTURA');
+
   constructor(
     private empresaService: EmpresaService,
-    private toast: ToastService
+    private toast: ToastService,
+    private authService: AuthService
   ) {}
 
   ngOnInit() {

@@ -5,6 +5,7 @@ import { CommonModule, AsyncPipe } from '@angular/common';
 import { ToastComponent } from './components/toast/toast.component';
 import { Observable } from 'rxjs';
 import { filter, map, startWith } from 'rxjs/operators';
+import { AuthService } from './services/auth.service';
 
 @Component({
   selector: 'app-root',
@@ -20,7 +21,7 @@ export class App implements OnInit {
 
   private platformId = inject(PLATFORM_ID);
 
-  constructor(private router: Router) {
+  constructor(public router: Router, public authService: AuthService) {
     const isAuth = (url: string) => !url.startsWith('/login') && url !== '/';
     this.showNav$ = this.router.events.pipe(
       filter(e => e instanceof NavigationEnd),
@@ -68,6 +69,6 @@ export class App implements OnInit {
   }
 
   logout() {
-    this.router.navigate(['/login']);
+    this.authService.logout();
   }
 }

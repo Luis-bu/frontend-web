@@ -187,7 +187,7 @@
         <div class="card hover-lift animate-fade-up delay-300">
           <div class="card-section-header">
             <h2>Actividades</h2>
-            <button class="btn-agregar" (click)="nuevaActividad()" *ngIf="!mostrarFormActividad()">
+            <button class="btn-agregar" (click)="nuevaActividad()" *ngIf="!mostrarFormActividad() && !soloLectura()">
               + Agregar
             </button>
           </div>
@@ -284,7 +284,7 @@
             </div>
             <h4>Sin actividades</h4>
             <p>Agrega las tareas o subprocesos que componen este proceso.</p>
-            <button class="btn-empty-create" (click)="nuevaActividad()">+ Agregar actividad</button>
+            <button *ngIf="!soloLectura()" class="btn-empty-create" (click)="nuevaActividad()">+ Agregar actividad</button>
           </div>
 
           <div *ngIf="actividades().length > 0" class="crud-table">
@@ -297,7 +297,7 @@
                 </div>
                 <p class="crud-row-desc">{{ act.descripcion }}</p>
               </div>
-              <div class="crud-row-actions">
+              <div class="crud-row-actions" *ngIf="!soloLectura()">
                 <button class="btn-edit-sm" (click)="editarActividad(act)">Editar</button>
                 <ng-container *ngIf="confirmarKey() === 'act-' + act.id; else btnEliminarAct">
                   <span class="confirmar-texto-sm">¿Eliminar?</span>
@@ -318,7 +318,7 @@
         <div class="card hover-lift animate-fade-up delay-400">
           <div class="card-section-header">
             <h2>Gateways</h2>
-            <button class="btn-agregar" (click)="nuevoGateway()" *ngIf="!mostrarFormGateway()">
+            <button class="btn-agregar" (click)="nuevoGateway()" *ngIf="!mostrarFormGateway() && !soloLectura()">
               + Agregar
             </button>
           </div>
@@ -357,7 +357,7 @@
             </div>
             <h4>Sin gateways</h4>
             <p>Los gateways controlan bifurcaciones y uniones en el flujo del proceso.</p>
-            <button class="btn-empty-create" (click)="nuevoGateway()">+ Agregar gateway</button>
+            <button *ngIf="!soloLectura()" class="btn-empty-create" (click)="nuevoGateway()">+ Agregar gateway</button>
           </div>
 
           <div *ngIf="gateways().length > 0" class="crud-table">
@@ -368,7 +368,7 @@
                   <span class="tag">{{ gw.tipo }}</span>
                 </div>
               </div>
-              <div class="crud-row-actions">
+              <div class="crud-row-actions" *ngIf="!soloLectura()">
                 <button class="btn-edit-sm" (click)="editarGateway(gw)">Editar</button>
                 <ng-container *ngIf="confirmarKey() === 'gw-' + gw.id; else btnEliminarGw">
                   <span class="confirmar-texto-sm">¿Eliminar?</span>
@@ -389,7 +389,7 @@
         <div class="card hover-lift animate-fade-up delay-400">
           <div class="card-section-header">
             <h2>Arcos</h2>
-            <button class="btn-agregar" (click)="nuevoArco()" *ngIf="!mostrarFormArco()">
+            <button class="btn-agregar" (click)="nuevoArco()" *ngIf="!mostrarFormArco() && !soloLectura()">
               + Agregar
             </button>
           </div>
@@ -459,7 +459,7 @@
             </div>
             <h4>Sin arcos</h4>
             <p>Los arcos conectan actividades y gateways definiendo el flujo del proceso.</p>
-            <button class="btn-empty-create" (click)="nuevoArco()">+ Agregar arco</button>
+            <button *ngIf="!soloLectura()" class="btn-empty-create" (click)="nuevoArco()">+ Agregar arco</button>
           </div>
 
           <div *ngIf="arcos().length > 0" class="crud-table">
@@ -475,7 +475,7 @@
                   <span *ngIf="arco.gatewayDestinoId">GW destino: #{{ arco.gatewayDestinoId }}</span>
                 </div>
               </div>
-              <div class="crud-row-actions">
+              <div class="crud-row-actions" *ngIf="!soloLectura()">
                 <button class="btn-edit-sm" (click)="editarArco(arco)">Editar</button>
                 <ng-container *ngIf="confirmarKey() === 'arco-' + arco.id; else btnEliminarArco">
                   <span class="confirmar-texto-sm">¿Eliminar?</span>
@@ -499,7 +499,7 @@
               <h2>Roles de proceso</h2>
               <p class="section-subtitle">Compartidos con toda la empresa</p>
             </div>
-            <button class="btn-agregar" (click)="nuevoRol()" *ngIf="!mostrarFormRol()">
+            <button class="btn-agregar" (click)="nuevoRol()" *ngIf="!mostrarFormRol() && !soloLectura()">
               + Agregar
             </button>
           </div>
@@ -540,7 +540,7 @@
             </div>
             <h4>Sin roles de proceso</h4>
             <p>Los roles asignan responsabilidades a las actividades. Se comparten con toda la empresa.</p>
-            <button class="btn-empty-create" (click)="nuevoRol()">+ Agregar rol</button>
+            <button *ngIf="!soloLectura()" class="btn-empty-create" (click)="nuevoRol()">+ Agregar rol</button>
           </div>
 
           <div *ngIf="rolesMostrados().length > 0" class="crud-table">
@@ -552,7 +552,7 @@
                 </div>
                 <p class="crud-row-desc">{{ rol.descripcion }}</p>
               </div>
-              <div class="crud-row-actions">
+              <div class="crud-row-actions" *ngIf="!soloLectura()">
                 <button class="btn-edit-sm" (click)="editarRol(rol)">Editar</button>
                 <ng-container *ngIf="rolesEnUsoPorProceso().has(rol.id); else rolNoEnUso">
                   <button class="btn-delete-sm btn-delete-sm--disabled" disabled title="No se puede eliminar: el rol está asignado a actividades de este proceso">Eliminar</button>
