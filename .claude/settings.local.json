@@ -23,7 +23,8 @@
       "PowerShell(dir \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\BackendWeb\" -Recurse | Where-Object { $_.Name -match \"empresa\" -or $_.Name -match \"Empresa\" } | Select-Object FullName)",
       "PowerShell(dir \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\BackendWeb\\\\src\" -Recurse | Where-Object { $_.Name -match \"mpresa\" } | Select-Object FullName)",
       "PowerShell(dir \"C:\\\\Users\\\\LENOVO\\\\OneDrive\\\\Escritorio\\\\BackendWeb\\\\backend-web\" -Recurse | Where-Object { $_.Name -match \"mpresa\" } | Select-Object FullName)",
-      "PowerShell(Head *)"
+      "PowerShell(Head *)",
+      "Bash(gh repo *)"
     ]
   }
 }
